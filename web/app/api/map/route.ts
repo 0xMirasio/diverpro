@@ -9,7 +9,7 @@ export async function GET() {
   if (!userId) return apiError("UNAUTHENTICATED", 401);
   const friendIds = await acceptedFriendIds(userId);
   const userSelect = { publicId: true, username: true, profileVisibility: true } as const;
-  const [dives, plans, reviews] = await Promise.all([
+  const [dives, plans, reviews, sites] = await Promise.all([
     db.dive.findMany({
       where: {
         latitude: { not: null }, longitude: { not: null },
@@ -33,6 +33,10 @@ export async function GET() {
       include: { user: { select: userSelect } },
       orderBy: { createdAt: "desc" }, take: 500,
     }),
+    db.diveSite.findMany({
+      select: { id: true, name: true, latitude: true, longitude: true, description: true, sourceDescription: true, source: true, _count: { select: { reviews: true } } },
+      orderBy: { name: "asc" }, take: 5000,
+    }),
   ]);
   const owner = (item: { userId: string; user: { publicId: string; username: string; profileVisibility: string } }) =>
     item.userId === userId || friendIds.includes(item.userId) || item.user.profileVisibility === "PUBLIC"
@@ -44,6 +48,7 @@ export async function GET() {
       ...dives.map((dive) => ({ id: dive.id, type: "dive", source: source(dive), siteName: dive.siteName, latitude: dive.latitude, longitude: dive.longitude, date: dive.date, visibility: dive.visibility, owner: owner(dive) })),
       ...plans.map((plan) => ({ id: plan.id, type: "plan", source: source(plan), siteName: plan.siteName, latitude: plan.latitude, longitude: plan.longitude, date: plan.plannedFor, endDate: plan.plannedUntil, visibility: plan.visibility, owner: owner(plan) })),
       ...reviews.map((review) => ({ id: review.id, type: "review", source: source(review), siteName: review.siteName, latitude: review.latitude, longitude: review.longitude, rating: review.rating, date: review.createdAt, owner: owner(review) })),
+      ...sites.map((site) => ({ id: site.id, type: "site", source: "community", siteName: site.name, latitude: site.latitude, longitude: site.longitude, description: site.description || site.sourceDescription, reviewCount: site._count.reviews, siteSource: site.source, href: `/sites/${site.id}` })),
     ],
   });
 }

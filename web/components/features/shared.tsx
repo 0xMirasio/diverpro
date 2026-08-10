@@ -85,6 +85,7 @@ export function PhotoUploader({ kind, multiple = true, onChange }: { kind: "AVAT
   async function select(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []).slice(0, multiple ? 6 - items.length : 1);
     if (!files.length) return; setPending(true); setError(false);
+    if (kind === "AVATAR" && files.some((file) => file.size > 300 * 1024)) { setError(true); setPending(false); event.target.value = ""; return; }
     try {
       const uploaded = [];
       for (const file of files) {
@@ -96,7 +97,7 @@ export function PhotoUploader({ kind, multiple = true, onChange }: { kind: "AVAT
       const next = multiple ? [...items, ...uploaded] : uploaded; setItems(next); onChange(next.map((item) => item.id));
     } catch { setError(true); } finally { setPending(false); event.target.value = ""; }
   }
-  return <div className="photo-uploader"><label className="upload-button"><input type="file" accept="image/jpeg,image/png,image/webp" multiple={multiple} onChange={select} disabled={pending || (multiple && items.length >= 6)} /><Upload size={15} />{pending ? c.loading : kind === "AVATAR" ? c.profilePhoto : c.choosePhotos}</label><small>{c.maxPhotos}</small>{error && <span className="inline-error">{c.uploadError}</span>}{items.length > 0 && <div className="photo-previews">{items.map((item) => <img src={item.url} alt="" key={item.id} />)}</div>}</div>;
+  return <div className="photo-uploader"><label className="upload-button"><input type="file" accept="image/jpeg,image/png,image/webp" multiple={multiple} onChange={select} disabled={pending || (multiple && items.length >= 6)} /><Upload size={15} />{pending ? c.loading : kind === "AVATAR" ? c.profilePhoto : c.choosePhotos}</label><small>{kind === "AVATAR" ? c.avatarPhotoHelp : c.maxPhotos}</small>{error && <span className="inline-error">{c.uploadError}</span>}{items.length > 0 && <div className="photo-previews">{items.map((item) => <img src={item.url} alt="" key={item.id} />)}</div>}</div>;
 }
 
 export function Avatar({ url, initials, size = "normal" }: { url?: string | null; initials: string; size?: "normal" | "large" }) {

@@ -57,13 +57,15 @@ export const planSchema = z
   .refine((value) => value.plannedUntil >= value.plannedFor, "End date must be on or after start date");
 
 export const reviewSchema = z.object({
-  siteName: z.string().trim().min(2).max(160),
-  latitude,
-  longitude,
+  siteId: z.string().uuid().optional(),
+  siteName: z.string().trim().min(2).max(160).optional(),
+  latitude: latitude.optional(),
+  longitude: longitude.optional(),
+  confirmNewSite: z.boolean().default(false),
   rating: z.number().int().min(1).max(5),
   comment: z.string().trim().max(4000).optional().default(""),
   photoIds: z.array(z.string().uuid()).max(6).default([]),
-});
+}).refine((value) => Boolean(value.siteId) || (Boolean(value.siteName) && value.latitude != null && value.longitude != null), "Choose a site or provide its name and coordinates");
 
 export const profileSchema = z.object({
   firstName: z.string().trim().min(1).max(60),
@@ -73,5 +75,6 @@ export const profileSchema = z.object({
   bio: z.string().trim().max(500),
   profileVisibility: visibilitySchema,
   logbookVisibility: visibilitySchema,
+  locale: localeSchema,
   avatarMediaId: z.string().uuid().nullable().optional(),
 });

@@ -6,11 +6,13 @@ A responsive, trilingual authentication foundation for BlueMates. The applicatio
 
 - Digital logbook with depth, duration, site, notes, GPS, up to six photos and per-logbook/per-dive privacy.
 - Diver discovery by username or member ID, friend requests, accept/decline workflow and public profile routes.
-- Editable profile with birth date, biography, profile image and public/private visibility.
+- Editable profile with birth date, biography, default language, 300 KB profile image and public/private visibility.
 - Interactive MapLibre world globe showing completed dives, friends' public activity, future dives and public site reviews with distinct markers.
 - Search-as-you-type place selection with multilingual Photon/OpenStreetMap suggestions, optional location bias, reverse geocoding and browser GPS.
 - Future-dive planning with GPS and per-plan privacy.
 - Geolocated 1–5 star site reviews with comments and photos.
+- Canonical dive-site catalogue imported from OpenStreetMap/Overpass, hidden on the map by default, with 500 m/name duplicate detection, community descriptions and review aggregation.
+- Administrator-only site editing, audit history, duplicate merging and safe deletion for empty sites.
 
 New profiles, logbooks, dives and planned dives are public by default; members can explicitly switch each supported scope to private. Existing privacy choices are preserved. All visibility checks are enforced in server queries and media delivery routes, not only hidden in the interface.
 
@@ -44,6 +46,10 @@ Use a local PostgreSQL instance matching `DATABASE_URL` in `.env`.
 
 Prisma migrations under `prisma/migrations` make the database portable to managed PostgreSQL providers. Run `npm run db:deploy` during production deployment.
 
+## Dive-site catalogue
+
+`npm run db:import-sites` downloads named OpenStreetMap objects tagged `sport=scuba_diving` and `scuba_diving:divespot`, then idempotently imports them by OSM object ID. OpenStreetMap attribution is displayed in the site map and detail pages. The data is available under ODbL 1.0; preserve attribution and share database adaptations as required by that licence.
+
 The local media adapter writes to `UPLOAD_DIR`. For horizontal production scaling, mount distributed storage or replace `lib/storage.ts` with an S3-compatible adapter while retaining the database-backed media authorization layer.
 
 ## Authentication
@@ -72,6 +78,8 @@ npm run version:major
 `public/images/scuba-hero.png` is an original project asset generated for this interface. It contains no third-party logo or licensed stock photography dependency.
 
 `public/images/logbook-background.png` is an original generated photograph-style asset for the digital logbook.
+
+`public/images/dashboard-ocean-v2.webp` is an original generated underwater panorama used by the dashboard hero.
 
 ## Map data
 

@@ -13,7 +13,7 @@ export function WorldMapFeature({ embedded = false }: { embedded?: boolean }) {
   const { locale } = useLanguage();
   const c = featureCopy(locale);
   const [points, setPoints] = useState<MapPoint[]>([]);
-  const [filters, setFilters] = useState<Record<PointType, boolean>>({ dive: true, plan: true, review: false });
+  const [filters, setFilters] = useState<Record<PointType, boolean>>({ dive: true, plan: true, review: false, site: false });
   const [showFriendActivity, setShowFriendActivity] = useState(true);
 
   useEffect(() => {
@@ -26,9 +26,9 @@ export function WorldMapFeature({ embedded = false }: { embedded?: boolean }) {
   }, []);
 
   const visiblePoints = useMemo(() => points.filter((point) => filters[point.type] && (showFriendActivity || point.source !== "friend" || point.type === "review")), [filters, points, showFriendActivity]);
-  const labels = useMemo(() => ({ completedDive: c.completedDive, futureDive: c.futureDive, siteReview: c.siteReview }), [c.completedDive, c.futureDive, c.siteReview]);
+  const labels = useMemo(() => ({ completedDive: c.completedDive, futureDive: c.futureDive, siteReview: c.siteReview, diveSite: c.diveSite }), [c.completedDive, c.diveSite, c.futureDive, c.siteReview]);
   const countBadge = <div className="map-count"><Globe2 size={18} /><strong>{visiblePoints.length}</strong><span>PIN{visiblePoints.length === 1 ? "" : "S"}</span></div>;
-  const choices: [PointType, string][] = [["dive", c.completedDive], ["plan", c.futureDive], ["review", c.siteReview]];
+  const choices: [PointType, string][] = [["dive", c.completedDive], ["plan", c.futureDive], ["review", c.siteReview], ["site", c.showDiveSites]];
 
   function toggle(type: PointType) {
     setFilters((current) => ({ ...current, [type]: !current[type] }));
@@ -47,5 +47,6 @@ export function WorldMapFeature({ embedded = false }: { embedded?: boolean }) {
       <MapCanvas points={visiblePoints} locale={locale} labels={labels} />
     </div>
     <p className="map-hint"><Star size={14} />{c.mapHint}</p>
+    <p className="map-hint site-credit">{c.siteDataCredit}</p>
   </div>;
 }

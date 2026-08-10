@@ -11,6 +11,7 @@ const extensions: Record<string, string> = {
 
 export const acceptedImageTypes = Object.keys(extensions);
 export const maxImageBytes = 5 * 1024 * 1024;
+export const maxAvatarImageBytes = 300 * 1024;
 
 export function mediaStorageKey(userId: string, mimeType: string) {
   return `${userId}/${crypto.randomUUID()}.${extensions[mimeType]}`;

@@ -68,6 +68,7 @@ export async function currentUser() {
       lastName: true,
       username: true,
       email: true,
+      role: true,
       locale: true,
       birthDate: true,
       bio: true,

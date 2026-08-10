@@ -24,6 +24,24 @@ enum MediaKind {
   REVIEW
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum DiveSiteSource {
+  OSM
+  COMMUNITY
+}
+
+enum SiteAuditAction {
+  SITE_CREATED
+  DESCRIPTION_UPDATED
+  SITE_UPDATED
+  SITE_MERGED
+  SITE_DELETED
+}
+
 model User {
   id                String     @id @default(uuid()) @db.Uuid
   publicId          String     @unique @map("public_id")
@@ -34,6 +52,7 @@ model User {
   email             String
   emailKey          String     @unique @map("email_key")
   passwordHash      String     @map("password_hash")
+  role              UserRole   @default(USER)
   locale            String     @default("en")
   birthDate         DateTime?  @map("birth_date") @db.Date
   bio               String?    @db.VarChar(500)
@@ -47,8 +66,10 @@ model User {
   plannedDives        PlannedDive[]
   reviews             SiteReview[]
   media               Media[]
-  sentFriendships     Friendship[]  @relation("FriendRequester")
-  receivedFriendships Friendship[]  @relation("FriendRecipient")
+  sentFriendships     Friendship[]    @relation("FriendRequester")
+  receivedFriendships Friendship[]    @relation("FriendRecipient")
+  createdSites        DiveSite[]      @relation("SiteCreator")
+  siteChanges         SiteChangeLog[] @relation("SiteChangeActor")
 
   @@map("users")
 }
@@ -92,18 +113,18 @@ model Dive {
 }
 
 model PlannedDive {
-  id         String     @id @default(uuid()) @db.Uuid
-  userId     String     @map("user_id") @db.Uuid
-  plannedFor DateTime   @map("planned_for")
-  plannedUntil DateTime @map("planned_until")
-  siteName   String     @map("site_name") @db.VarChar(160)
-  details    String?    @db.Text
-  latitude   Float?
-  longitude  Float?
-  visibility Visibility @default(PUBLIC)
-  createdAt  DateTime   @default(now()) @map("created_at")
-  updatedAt  DateTime   @updatedAt @map("updated_at")
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String     @id @default(uuid()) @db.Uuid
+  userId       String     @map("user_id") @db.Uuid
+  plannedFor   DateTime   @map("planned_for")
+  plannedUntil DateTime   @map("planned_until")
+  siteName     String     @map("site_name") @db.VarChar(160)
+  details      String?    @db.Text
+  latitude     Float?
+  longitude    Float?
+  visibility   Visibility @default(PUBLIC)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, plannedFor])
   @@index([visibility, plannedFor])
@@ -111,21 +132,64 @@ model PlannedDive {
 }
 
 model SiteReview {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  siteName  String   @map("site_name") @db.VarChar(160)
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  siteId    String?   @map("site_id") @db.Uuid
+  siteName  String    @map("site_name") @db.VarChar(160)
   latitude  Float
   longitude Float
   rating    Int
-  comment   String?  @db.Text
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   String?   @db.Text
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  site      DiveSite? @relation(fields: [siteId], references: [id], onDelete: SetNull)
   photos    Media[]
 
   @@index([latitude, longitude])
   @@index([userId, createdAt])
+  @@index([siteId, createdAt])
   @@map("site_reviews")
+}
+
+model DiveSite {
+  id                String          @id @default(uuid()) @db.Uuid
+  name              String          @db.VarChar(160)
+  normalizedName    String          @map("normalized_name") @db.VarChar(180)
+  latitude          Float
+  longitude         Float
+  description       String?         @db.Text
+  sourceDescription String?         @map("source_description") @db.Text
+  source            DiveSiteSource  @default(COMMUNITY)
+  externalId        String?         @unique @map("external_id") @db.VarChar(100)
+  sourceUrl         String?         @map("source_url") @db.VarChar(500)
+  metadata          Json?
+  createdById       String?         @map("created_by_id") @db.Uuid
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+  createdBy         User?           @relation("SiteCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  reviews           SiteReview[]
+  changes           SiteChangeLog[]
+
+  @@index([normalizedName])
+  @@index([latitude, longitude])
+  @@map("dive_sites")
+}
+
+model SiteChangeLog {
+  id        String          @id @default(uuid()) @db.Uuid
+  siteId    String?         @map("site_id") @db.Uuid
+  actorId   String?         @map("actor_id") @db.Uuid
+  action    SiteAuditAction
+  before    Json?
+  after     Json?
+  createdAt DateTime        @default(now()) @map("created_at")
+  site      DiveSite?       @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  actor     User?           @relation("SiteChangeActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([siteId, createdAt])
+  @@index([actorId, createdAt])
+  @@map("site_change_logs")
 }
 
 model Media {

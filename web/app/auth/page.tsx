@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { AuthPanel } from "@/components/auth-panel";
+import { AuthHero } from "@/components/auth-hero";
 import { Brand } from "@/components/brand";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { currentUser } from "@/lib/auth";
@@ -16,11 +17,7 @@ export default async function AuthPage() {
         <LanguageSwitcher />
       </header>
       <section className="auth-layout">
-        <div className="hero-copy" aria-hidden="true">
-          <span className="depth-label">DISCOVER THE DEEP</span>
-          <h1>Your ocean.<br />Your story.</h1>
-          <div className="depth-line"><span /></div>
-        </div>
+        <AuthHero />
         <AuthPanel />
       </section>
       <SiteFooter variant="overlay" />

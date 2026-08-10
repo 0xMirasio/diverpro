@@ -9,6 +9,7 @@ export const localeNames: Record<Locale, string> = {
 
 const dictionaries = {
   en: {
+    heroEyebrow: "DISCOVER THE DEEP", heroTitleLine1: "Your ocean.", heroTitleLine2: "Your story.",
     brandTagline: "Dive further. Plan smarter.",
     welcome: "Welcome back, diver",
     welcomeSub: "Your next underwater story starts here.",
@@ -38,7 +39,9 @@ const dictionaries = {
     invalidInput: "Please check the highlighted information.",
     genericError: "Something went wrong. Please try again.",
     dashboardGreeting: "Good to see you",
+    dashboardEyebrow: "BLUEMATES COMMAND CENTER",
     dashboardSub: "Your diving space is ready for the adventures ahead.",
+    sidebarTagline: "EXPLORE · LOG · CONNECT",
     verifiedProfile: "Diver profile",
     memberId: "Member ID",
     account: "Account",
@@ -52,6 +55,7 @@ const dictionaries = {
     menu: "Open menu",
   },
   fr: {
+    heroEyebrow: "DÉCOUVREZ LES PROFONDEURS", heroTitleLine1: "Votre océan.", heroTitleLine2: "Votre histoire.",
     brandTagline: "Plongez plus loin. Planifiez mieux.",
     welcome: "Heureux de vous revoir",
     welcomeSub: "Votre prochaine histoire sous-marine commence ici.",
@@ -81,7 +85,9 @@ const dictionaries = {
     invalidInput: "Veuillez vérifier les informations saisies.",
     genericError: "Une erreur est survenue. Veuillez réessayer.",
     dashboardGreeting: "Ravi de vous revoir",
+    dashboardEyebrow: "CENTRE DE COMMANDE BLUEMATES",
     dashboardSub: "Votre espace plongée est prêt pour les prochaines aventures.",
+    sidebarTagline: "EXPLOREZ · NOTEZ · ÉCHANGEZ",
     verifiedProfile: "Profil plongeur",
     memberId: "Identifiant membre",
     account: "Compte",
@@ -95,6 +101,7 @@ const dictionaries = {
     menu: "Ouvrir le menu",
   },
   es: {
+    heroEyebrow: "DESCUBRE LAS PROFUNDIDADES", heroTitleLine1: "Tu océano.", heroTitleLine2: "Tu historia.",
     brandTagline: "Bucea más lejos. Planifica mejor.",
     welcome: "Qué bueno verte de nuevo",
     welcomeSub: "Tu próxima historia submarina comienza aquí.",
@@ -124,7 +131,9 @@ const dictionaries = {
     invalidInput: "Revisa la información introducida.",
     genericError: "Algo salió mal. Inténtalo de nuevo.",
     dashboardGreeting: "Nos alegra verte",
+    dashboardEyebrow: "CENTRO DE MANDO BLUEMATES",
     dashboardSub: "Tu espacio de buceo está listo para las próximas aventuras.",
+    sidebarTagline: "EXPLORA · REGISTRA · CONECTA",
     verifiedProfile: "Perfil de buceo",
     memberId: "ID de miembro",
     account: "Cuenta",

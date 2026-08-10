@@ -1,6 +1,6 @@
 {
   "name": "bluemates-web",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -12,6 +12,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
+    "db:import-sites": "node scripts/import-osm-dive-sites.mjs",
     "db:seed-demo": "node prisma/seed-demo.mjs",
     "version:func": "npm version patch --no-git-tag-version",
     "version:major": "npm version major --no-git-tag-version"

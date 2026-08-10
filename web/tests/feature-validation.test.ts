@@ -21,6 +21,12 @@ describe("diving feature validation", () => {
     expect(planSchema.safeParse({ plannedFor: "2027-01-08", plannedUntil: "2027-01-01", siteName: "Reef", visibility: "PUBLIC", latitude: null, longitude: null }).success).toBe(false);
   });
 
+  it("requires either a canonical site or a named GPS position for a review", () => {
+    expect(reviewSchema.safeParse({ siteId: "c792f9b6-48b2-4bc1-bd55-2ac35bcb9d75", rating: 5 }).success).toBe(true);
+    expect(reviewSchema.safeParse({ siteName: "Calanque Reef", latitude: 43.21, longitude: 5.34, rating: 4 }).success).toBe(true);
+    expect(reviewSchema.safeParse({ siteName: "Calanque Reef", rating: 4 }).success).toBe(false);
+  });
+
   it("accepts grouped dives but limits the group size", () => {
     const base = { date: "2026-08-09", siteName: "Reef", depthM: 20, durationMinutes: 40 };
     const dive = diveSchema.safeParse({ ...base, groupCount: 10 });

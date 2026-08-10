@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { apiError } from "@/lib/api";
 import { sessionUserId } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { acceptedImageTypes, maxImageBytes, mediaStorageKey, saveMedia } from "@/lib/storage";
+import { acceptedImageTypes, maxAvatarImageBytes, maxImageBytes, mediaStorageKey, saveMedia } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
@@ -16,10 +16,11 @@ export async function POST(request: Request) {
   if (!(file instanceof File) || typeof kindValue !== "string" || !(kindValue in MediaKind)) {
     return apiError("INVALID_UPLOAD", 400);
   }
-  if (!acceptedImageTypes.includes(file.type) || file.size <= 0 || file.size > maxImageBytes) {
+  const kind = kindValue as MediaKind;
+  const byteLimit = kind === "AVATAR" ? maxAvatarImageBytes : maxImageBytes;
+  if (!acceptedImageTypes.includes(file.type) || file.size <= 0 || file.size > byteLimit) {
     return apiError("INVALID_IMAGE", 400);
   }
-  const kind = kindValue as MediaKind;
   const storageKey = mediaStorageKey(userId, file.type);
   await saveMedia(storageKey, new Uint8Array(await file.arrayBuffer()));
   const media = await db.media.create({

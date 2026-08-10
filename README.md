@@ -4,6 +4,8 @@ The active application is in [`web`](./web). The root `docker-compose.yml` start
 
 The current product includes a public-by-default digital dive logbook with optional privacy, diver profiles and friend requests, an interactive world globe, future-dive planning, GPS site reviews and photo uploads. Start it with `docker compose up --build` and open `http://localhost:3000`.
 
+The dive-site catalogue is imported from OpenStreetMap through Overpass (`sport=scuba_diving` plus `scuba_diving:divespot`) and is attributed under ODbL. Run `docker compose exec web npm run db:import-sites` to refresh the snapshot. Dive.site data is not copied because its terms do not grant reusable database rights without prior written permission.
+
 The WebApp version is sourced from `web/package.json` and displayed automatically in the footer. New standard functions increment the final number with `npm run version:func`; major functions increment the first number with `npm run version:major`.
 
 ## Demo population

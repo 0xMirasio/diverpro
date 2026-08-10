@@ -5,18 +5,21 @@ import type { Locale } from "@/lib/i18n";
 
 export type MapPoint = {
   id: string;
-  type: "dive" | "plan" | "review";
+  type: "dive" | "plan" | "review" | "site";
   source?: "self" | "friend" | "community";
   siteName: string;
   latitude: number;
   longitude: number;
-  date: string;
+  date?: string;
   endDate?: string;
   rating?: number;
   owner?: { publicId: string | null; username: string | null };
+  description?: string | null;
+  reviewCount?: number;
+  href?: string;
 };
 
-type MapLabels = { completedDive: string; futureDive: string; siteReview: string };
+type MapLabels = { completedDive: string; futureDive: string; siteReview: string; diveSite?: string };
 
 export function MapCanvas({ points, locale, labels, className = "", fitPoints = false }: { points: MapPoint[]; locale: Locale; labels: MapLabels; className?: string; fitPoints?: boolean }) {
   const container = useRef<HTMLDivElement>(null);
@@ -49,14 +52,16 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
           const popupContent = document.createElement("div");
           popupContent.className = "map-popup";
           const kind = document.createElement("span");
-          kind.textContent = point.type === "dive" ? labels.completedDive : point.type === "plan" ? labels.futureDive : labels.siteReview;
+          kind.textContent = point.type === "dive" ? labels.completedDive : point.type === "plan" ? labels.futureDive : point.type === "review" ? labels.siteReview : labels.diveSite || "Dive site";
           const title = document.createElement("strong");
           title.textContent = point.siteName;
           const meta = document.createElement("small");
-          const start = new Date(point.date).toLocaleDateString(locale);
+          const start = point.date ? new Date(point.date).toLocaleDateString(locale) : "";
           const end = point.endDate ? new Date(point.endDate).toLocaleDateString(locale) : null;
-          meta.textContent = `${end && end !== start ? `${start} – ${end}` : start}${point.rating ? ` · ${"★".repeat(point.rating)}` : ""}`;
+          meta.textContent = `${end && end !== start ? `${start} – ${end}` : start}${point.rating ? ` · ${"★".repeat(point.rating)}` : ""}${point.reviewCount != null ? `${start ? " · " : ""}${point.reviewCount} review${point.reviewCount === 1 ? "" : "s"}` : ""}`;
           popupContent.append(kind, title, meta);
+          if (point.description) { const description = document.createElement("p"); description.textContent = point.description.slice(0, 180); popupContent.append(description); }
+          if (point.href) { const siteLink = document.createElement("a"); siteLink.href = point.href; siteLink.textContent = point.siteName; popupContent.append(siteLink); }
           if (point.owner?.publicId && point.owner.username) {
             const link = document.createElement("a");
             link.href = `/profile/${point.owner.publicId}`;
@@ -81,7 +86,7 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
       disposed = true;
       map?.remove();
     };
-  }, [fitPoints, labels.completedDive, labels.futureDive, labels.siteReview, locale, points]);
+  }, [fitPoints, labels.completedDive, labels.diveSite, labels.futureDive, labels.siteReview, locale, points]);
 
   return <div className={`world-map ${className}`} ref={container} />;
 }
