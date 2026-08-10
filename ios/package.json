@@ -7,6 +7,7 @@
     "start": "expo start",
     "ios": "expo run:ios",
     "prebuild:ios": "expo prebuild --platform ios --clean",
+    "postinstall": "patch-package",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -31,6 +32,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "patch-package": "^8.0.1",
     "typescript": "~6.0.3"
   }
 }
