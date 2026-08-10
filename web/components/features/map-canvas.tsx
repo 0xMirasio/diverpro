@@ -23,7 +23,7 @@ export type MapPoint = {
   topologies?: unknown;
 };
 
-type MapLabels = { completedDive: string; futureDive: string; siteReview: string; diveSite?: string; viewSite?: string };
+type MapLabels = { completedDive: string; futureDive: string; siteReview: string; diveSite?: string; wreck?: string; viewSite?: string };
 
 export function MapCanvas({ points, locale, labels, className = "", fitPoints = false, catalogueLayer = false, visibleTypes, showFriendActivity = true }: { points: MapPoint[]; locale: Locale; labels: MapLabels; className?: string; fitPoints?: boolean; catalogueLayer?: boolean; visibleTypes?: MapPoint["type"][]; showFriendActivity?: boolean }) {
   const container = useRef<HTMLDivElement>(null);
@@ -78,7 +78,8 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
         const content = document.createElement("div");
         content.className = "map-popup";
         const kind = document.createElement("span");
-        kind.textContent = point.type === "dive" ? labels.completedDive : point.type === "plan" ? labels.futureDive : point.type === "review" ? labels.siteReview : labels.diveSite || "Dive site";
+        const isWreck = Array.isArray(point.topologies) && point.topologies.includes("wreck");
+        kind.textContent = point.type === "dive" ? labels.completedDive : point.type === "plan" ? labels.futureDive : point.type === "review" ? labels.siteReview : isWreck ? labels.wreck || "Wreck" : labels.diveSite || "Dive site";
         const title = document.createElement("strong");
         title.textContent = point.siteName;
         const meta = document.createElement("small");
@@ -139,10 +140,10 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
             layout: { visibility: visibility.current.types.includes("site") ? "visible" : "none" },
             paint: {
               "circle-radius": ["interpolate", ["linear"], ["zoom"], 0, 2.5, 5, 4.5, 10, 7],
-              "circle-color": ["case", ["==", ["get", "isWreck"], true], "#e87550", "#f1c443"],
-              "circle-opacity": 0.26,
-              "circle-stroke-color": ["case", ["==", ["get", "isWreck"], true], "#9f3d24", "#c69718"],
-              "circle-stroke-opacity": 0.46,
+              "circle-color": ["case", ["==", ["get", "isWreck"], true], "#e23f50", "#f1c443"],
+              "circle-opacity": ["case", ["==", ["get", "isWreck"], true], 0.32, 0.28],
+              "circle-stroke-color": ["case", ["==", ["get", "isWreck"], true], "#a21f31", "#c69718"],
+              "circle-stroke-opacity": ["case", ["==", ["get", "isWreck"], true], 0.55, 0.48],
               "circle-stroke-width": 1,
             },
           });
@@ -175,7 +176,7 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
     });
 
     return () => { disposed = true; markerElements.current = []; if (mapInstance.current === map) mapInstance.current = null; map?.remove(); };
-  }, [catalogueLayer, fitPoints, labels.completedDive, labels.diveSite, labels.futureDive, labels.siteReview, labels.viewSite, locale, points]);
+  }, [catalogueLayer, fitPoints, labels.completedDive, labels.diveSite, labels.futureDive, labels.siteReview, labels.viewSite, labels.wreck, locale, points]);
 
   return <div className={`world-map ${className}`} ref={container} />;
 }

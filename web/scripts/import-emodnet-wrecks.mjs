@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 const endpoint = process.env.EMODNET_WFS_URL || "https://ows.emodnet-humanactivities.eu/wfs";
 const pageSize = 2000;
-const maxDepthM = Number(process.env.WRECK_MAX_DEPTH_M || 100);
+const maxDepthM = Number(process.env.WRECK_MAX_DEPTH_M || 60);
 
 function normalized(value) {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();

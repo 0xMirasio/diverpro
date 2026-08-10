@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 export async function GET() {
   if (!(await sessionUserId())) return apiError("UNAUTHENTICATED", 401);
   const sites = await db.diveSite.findMany({
+    where: { OR: [{ source: { not: "EMODNET_WRECK" } }, { maxDepthM: { lte: 60 } }] },
     select: {
       id: true, name: true, latitude: true, longitude: true, description: true, sourceDescription: true,
       source: true, countryName: true, seaName: true, environment: true, topologies: true, maxDepthM: true,

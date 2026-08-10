@@ -16,3 +16,14 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   if (!result.count) return apiError("REQUEST_NOT_FOUND", 404);
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(_: Request, context: { params: Promise<{ id: string }> }) {
+  const userId = await sessionUserId();
+  if (!userId) return apiError("UNAUTHENTICATED", 401);
+  const { id } = await context.params;
+  const result = await db.friendship.deleteMany({
+    where: { id, status: "ACCEPTED", OR: [{ requesterId: userId }, { recipientId: userId }] },
+  });
+  if (!result.count) return apiError("FRIENDSHIP_NOT_FOUND", 404);
+  return NextResponse.json({ ok: true });
+}

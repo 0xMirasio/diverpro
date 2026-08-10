@@ -32,10 +32,10 @@ export function WorldMapFeature({ embedded = false }: { embedded?: boolean }) {
   const points = useMemo(() => [...activityPoints, ...sitePoints], [activityPoints, sitePoints]);
   const visibleTypes = useMemo(() => (Object.entries(filters).filter(([, visible]) => visible).map(([type]) => type)) as PointType[], [filters]);
   const visibleCount = useMemo(() => points.filter((point) => filters[point.type] && (showFriendActivity || point.source !== "friend")).length, [filters, points, showFriendActivity]);
-  const labels = useMemo(() => ({ completedDive: c.completedDive, futureDive: c.futureDive, siteReview: c.siteReview, diveSite: c.diveSite, viewSite: c.viewSite }), [c.completedDive, c.diveSite, c.futureDive, c.siteReview, c.viewSite]);
+  const labels = useMemo(() => ({ completedDive: c.completedDive, futureDive: c.futureDive, siteReview: c.siteReview, diveSite: c.diveSite, wreck: c.wreck, viewSite: c.viewSite }), [c.completedDive, c.diveSite, c.futureDive, c.siteReview, c.viewSite, c.wreck]);
   const dataCredit = locale === "fr" ? "Sites © contributeurs OpenStreetMap et OpenDiveMap · Épaves © UK Hydrographic Office via EMODnet · Fond de carte © OpenFreeMap" : locale === "es" ? "Sitios © colaboradores de OpenStreetMap y OpenDiveMap · Pecios © UK Hydrographic Office vía EMODnet · Mapa base © OpenFreeMap" : "Dive sites © OpenStreetMap and OpenDiveMap contributors · Wrecks © UK Hydrographic Office via EMODnet · Basemap © OpenFreeMap";
   const countBadge = <div className="map-count"><Globe2 size={18} /><strong>{visibleCount}</strong><span>PIN{visibleCount === 1 ? "" : "S"}</span></div>;
-  const choices: [PointType, string][] = [["dive", c.completedDive], ["plan", c.futureDive], ["review", c.siteReview], ["site", c.showDiveSites]];
+  const choices: [PointType, string][] = [["dive", c.completedDive], ["plan", c.futureDive], ["site", c.showDiveSites]];
 
   function toggle(type: PointType) {
     if (type === "site" && !filters.site && !catalogueLoaded) {

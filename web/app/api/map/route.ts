@@ -9,7 +9,7 @@ export async function GET() {
   if (!userId) return apiError("UNAUTHENTICATED", 401);
   const friendIds = await acceptedFriendIds(userId);
   const userSelect = { publicId: true, username: true, profileVisibility: true } as const;
-  const [dives, plans, reviews] = await Promise.all([
+  const [dives, plans] = await Promise.all([
     db.dive.findMany({
       where: {
         latitude: { not: null }, longitude: { not: null },
@@ -29,11 +29,6 @@ export async function GET() {
       include: { user: { select: userSelect } },
       orderBy: { plannedFor: "asc" }, take: 500,
     }),
-    db.siteReview.findMany({
-      where: { siteId: null },
-      include: { user: { select: userSelect } },
-      orderBy: { createdAt: "desc" }, take: 500,
-    }),
   ]);
   const owner = (item: { userId: string; user: { publicId: string; username: string; profileVisibility: string } }) =>
     item.userId === userId || friendIds.includes(item.userId) || item.user.profileVisibility === "PUBLIC"
@@ -44,7 +39,6 @@ export async function GET() {
     points: [
       ...dives.map((dive) => ({ id: dive.id, type: "dive", source: source(dive), siteName: dive.siteName, latitude: dive.latitude, longitude: dive.longitude, date: dive.date, visibility: dive.visibility, owner: owner(dive) })),
       ...plans.map((plan) => ({ id: plan.id, type: "plan", source: source(plan), siteName: plan.siteName, latitude: plan.latitude, longitude: plan.longitude, date: plan.plannedFor, endDate: plan.plannedUntil, visibility: plan.visibility, owner: owner(plan) })),
-      ...reviews.map((review) => ({ id: review.id, type: "review", source: source(review), siteName: review.siteName, latitude: review.latitude, longitude: review.longitude, rating: review.rating, description: review.comment, reviewCount: 1, owner: owner(review) })),
     ],
   });
 }
