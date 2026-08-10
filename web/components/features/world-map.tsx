@@ -44,10 +44,9 @@ export function WorldMapFeature({ embedded = false }: { embedded?: boolean }) {
     </div>
     <div className="map-frame">
       {points.length === 0 && <div className="map-loading"><MapPin size={24} /><span>{c.loadingMap}</span></div>}
-      <MapCanvas points={visiblePoints} locale={locale} labels={labels} catalogue2DOnly />
+      <MapCanvas points={visiblePoints} locale={locale} labels={labels} catalogueLayer />
     </div>
     <p className="map-hint"><Star size={14} />{c.mapHint}</p>
-    {filters.site && <p className="map-hint site-2d-hint">{c.site2DHint}</p>}
     <p className="map-hint site-credit">{c.siteDataCredit}</p>
   </div>;
 }

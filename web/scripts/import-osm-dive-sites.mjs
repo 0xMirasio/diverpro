@@ -46,7 +46,7 @@ async function reconcileLegacyReviews() {
 
 async function main() {
   const body = new URLSearchParams({ data: query });
-  const response = await fetch(endpoint, { method: "POST", body, signal: AbortSignal.timeout(180000), headers: { "User-Agent": "BlueMates/2.0.1 OSM dive-site importer" } });
+  const response = await fetch(endpoint, { method: "POST", body, signal: AbortSignal.timeout(180000), headers: { "User-Agent": "BlueMates/2.0.2 OSM dive-site importer" } });
   if (!response.ok) throw new Error(`Overpass returned ${response.status}`);
   const payload = await response.json();
   const sites = (payload.elements || []).map((element) => {

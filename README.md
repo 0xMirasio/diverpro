@@ -10,6 +10,6 @@ The WebApp version is sourced from `web/package.json` and displayed automaticall
 
 ## Demo population
 
-Run `docker compose exec web npm run db:seed-demo` to create or refresh the idempotent demo population. It adds Gorge, Lucas and Michelle, connects them to every non-demo member, and fills their public profiles with dive logs, future trips and geolocated reviews. All three demo accounts use the password `DemoDive2026!`; their emails are `gorge@demo.bluemates.test`, `lucas@demo.bluemates.test` and `michelle@demo.bluemates.test`.
+The Gorge, Lucas and Michelle seed is reserved for isolated development and test databases. It is never part of deployment and now refuses to run when `NODE_ENV=production`, unless an operator explicitly sets `ALLOW_DEMO_SEED=true` in a disposable test environment.
 
 The `android` and `ios` directories document the planned native clients. They intentionally do not duplicate the web implementation yet; future clients will consume the versioned JSON authentication API and share the same PostgreSQL-backed accounts.

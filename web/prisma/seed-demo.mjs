@@ -1,6 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import { hash } from "bcryptjs";
 
+if (process.env.NODE_ENV === "production" && process.env.ALLOW_DEMO_SEED !== "true") {
+  throw new Error("Demo data is disabled in production. Set ALLOW_DEMO_SEED=true only in an isolated test environment.");
+}
+
 const prisma = new PrismaClient();
 const demoPassword = "DemoDive2026!";
 

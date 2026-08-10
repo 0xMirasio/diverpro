@@ -7,7 +7,7 @@ A responsive, trilingual authentication foundation for BlueMates. The applicatio
 - Digital logbook with depth, duration, site, notes, GPS, up to six photos and per-logbook/per-dive privacy.
 - Diver discovery by username or member ID, friend requests, accept/decline workflow and public profile routes.
 - Editable profile with birth date, biography, default language, 300 KB profile image and public/private visibility.
-- Interactive MapLibre world globe showing completed dives, friends' public activity, future dives and public site reviews with distinct markers.
+- Interactive MapLibre world globe showing completed dives, friends' public activity, future dives and a native GeoJSON dive-site layer that remains correctly projected in 3D and 2D.
 - Search-as-you-type place selection with multilingual Photon/OpenStreetMap suggestions, optional location bias, reverse geocoding and browser GPS.
 - Future-dive planning with GPS and per-plan privacy.
 - Geolocated 1–5 star site reviews with comments and photos.
