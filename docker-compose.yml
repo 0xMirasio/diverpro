@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: diverpro
       POSTGRES_USER: diverpro
-      POSTGRES_PASSWORD: diverpro
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-diverpro}
     volumes:
       - diverpro_postgres:/var/lib/postgresql/data
     healthcheck:
@@ -18,7 +18,7 @@ services:
     build: ./web
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://diverpro:diverpro@db:5432/diverpro?schema=public
+      DATABASE_URL: postgresql://diverpro:${POSTGRES_PASSWORD:-diverpro}@db:5432/diverpro?schema=public
       AUTH_SECRET: ${AUTH_SECRET:-local-development-secret-change-before-production}
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-true}
       NEXT_PUBLIC_GOOGLE_AUTH_ENABLED: "false"
