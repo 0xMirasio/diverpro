@@ -11,10 +11,25 @@ export function SiteFooter({ variant = "default" }: { variant?: "default" | "ove
   const { locale } = useLanguage();
   const c = featureCopy(locale);
   const [showIos, setShowIos] = useState(false);
+  const [sourceCopied, setSourceCopied] = useState(false);
   const ipaUrl = "https://github.com/0xMirasio/diverpro/releases/download/ios-latest/BlueMates.ipa";
   const sourceUrl = "https://github.com/0xMirasio/diverpro/releases/download/ios-latest/bluemates-altstore.json";
-  const addSourceUrl = `altstore-classic://source?url=${encodeURIComponent(sourceUrl)}`;
-  const directInstallUrl = `altstore-classic://install?url=${encodeURIComponent(ipaUrl)}`;
+  const addSourceUrl = `altstore://source?url=${encodeURIComponent(sourceUrl)}`;
+  const directInstallUrl = `altstore://install?url=${encodeURIComponent(ipaUrl)}`;
+  const sourceHelp = {
+    en: { copy: "Copy the source URL", copied: "Source URL copied", prompt: "Copy this URL and paste it in AltStore → Sources → +", help: "If AltStore does not open, update AltStore Classic or copy this source URL and paste it in Sources → +." },
+    fr: { copy: "Copier l’URL de la source", copied: "URL de la source copiée", prompt: "Copiez cette URL puis collez-la dans AltStore → Sources → +", help: "Si AltStore ne s’ouvre pas, mettez AltStore Classic à jour ou copiez cette URL puis collez-la dans Sources → +." },
+    es: { copy: "Copiar la URL de la fuente", copied: "URL de la fuente copiada", prompt: "Copia esta URL y pégala en AltStore → Sources → +", help: "Si AltStore no se abre, actualiza AltStore Classic o copia esta URL y pégala en Sources → +." },
+  }[locale];
+  const copySourceUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(sourceUrl);
+      setSourceCopied(true);
+      window.setTimeout(() => setSourceCopied(false), 2500);
+    } catch {
+      window.prompt(sourceHelp.prompt, sourceUrl);
+    }
+  };
   useEffect(() => {
     if (!showIos) return;
     const close = (event: KeyboardEvent) => { if (event.key === "Escape") setShowIos(false); };
@@ -54,7 +69,9 @@ export function SiteFooter({ variant = "default" }: { variant?: "default" | "ove
             <a className="primary" href={addSourceUrl}>{c.addAltStoreSource}</a>
             <a href={directInstallUrl}>{c.directAltStoreInstall}</a>
             <a href={ipaUrl}>{c.downloadIpa}</a>
+            <button type="button" onClick={copySourceUrl}>{sourceCopied ? sourceHelp.copied : sourceHelp.copy}</button>
           </div>
+          <small className="ios-download-help">{sourceHelp.help}</small>
           <small className="ios-download-help">{c.altStoreRequirement}</small>
         </section>
       </div>}
