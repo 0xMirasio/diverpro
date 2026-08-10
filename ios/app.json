@@ -1,0 +1,58 @@
+{
+  "expo": {
+    "name": "BlueMates",
+    "slug": "bluemates",
+    "scheme": "bluemates",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "org.bluemates.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "BlueMates utilise votre position pour localiser précisément vos plongées et sites.",
+        "NSPhotoLibraryUsageDescription": "BlueMates accède à vos photos pour illustrer votre profil, vos plongées et vos avis."
+      }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "BlueMates accède à vos photos pour illustrer votre profil, vos plongées et vos avis.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "BlueMates utilise votre position pour localiser précisément vos plongées et sites."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#031f36"
+        }
+      ],
+      "expo-secure-store",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "16.4"
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "apiUrl": "https://bluemates.duckdns.org"
+    }
+  }
+}

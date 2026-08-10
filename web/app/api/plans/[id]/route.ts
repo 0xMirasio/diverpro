@@ -10,3 +10,12 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   const result = await db.plannedDive.updateMany({ where: { id, userId }, data: { visibility: body.visibility } });
   if (!result.count) return apiError("NOT_FOUND", 404); return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(_: Request, context: { params: Promise<{ id: string }> }) {
+  const userId = await sessionUserId();
+  if (!userId) return apiError("UNAUTHENTICATED", 401);
+  const { id } = await context.params;
+  const result = await db.plannedDive.deleteMany({ where: { id, userId } });
+  if (!result.count) return apiError("NOT_FOUND", 404);
+  return NextResponse.json({ ok: true });
+}

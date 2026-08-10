@@ -1,0 +1,9 @@
+node_modules/
+.expo/
+ios/
+build/
+*.ipa
+*.xcarchive
+*.mobileprovision
+*.p12
+.DS_Store

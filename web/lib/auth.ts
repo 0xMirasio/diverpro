@@ -1,9 +1,11 @@
 import { cookies } from "next/headers";
+import { headers } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import { db } from "@/lib/db";
 
 const SESSION_COOKIE = "bluemates_session";
 const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7;
+const MOBILE_SESSION_DURATION_SECONDS = 60 * 60 * 24 * 30;
 
 function shouldUseSecureCookie() {
   return process.env.NODE_ENV === "production" && process.env.SESSION_COOKIE_SECURE !== "false";
@@ -17,12 +19,20 @@ function secret() {
   return new TextEncoder().encode(value);
 }
 
-export async function createSession(userId: string) {
-  const token = await new SignJWT({ sub: userId })
+export async function createAccessToken(userId: string, durationSeconds = SESSION_DURATION_SECONDS) {
+  return new SignJWT({ sub: userId })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(`${SESSION_DURATION_SECONDS}s`)
+    .setExpirationTime(`${durationSeconds}s`)
     .sign(secret());
+}
+
+export async function createMobileAccessToken(userId: string) {
+  return createAccessToken(userId, MOBILE_SESSION_DURATION_SECONDS);
+}
+
+export async function createSession(userId: string) {
+  const token = await createAccessToken(userId);
 
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, token, {
@@ -46,7 +56,9 @@ export async function clearSession() {
 }
 
 export async function sessionUserId() {
-  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  const authorization = (await headers()).get("authorization");
+  const bearerToken = authorization?.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
+  const token = bearerToken || (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secret());
