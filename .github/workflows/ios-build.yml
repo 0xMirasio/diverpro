@@ -35,6 +35,11 @@ jobs:
           cache: npm
           cache-dependency-path: ios/package-lock.json
 
+      - name: Select Xcode 26.3
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.3.app/Contents/Developer
+          xcodebuild -version
+
       - name: Install JavaScript dependencies
         run: npm ci
 
