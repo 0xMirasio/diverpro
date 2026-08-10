@@ -1,6 +1,6 @@
 {
   "name": "bluemates-web",
-  "version": "2.0.4",
+  "version": "2.1.4",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -13,6 +13,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:import-sites": "node scripts/import-osm-dive-sites.mjs && node scripts/import-opendivemap-sites.mjs",
+    "db:import-wrecks": "node scripts/import-emodnet-wrecks.mjs",
     "db:seed-demo": "node prisma/seed-demo.mjs",
     "version:func": "npm version patch --no-git-tag-version",
     "version:major": "npm version major --no-git-tag-version"

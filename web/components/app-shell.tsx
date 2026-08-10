@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { BookOpenText, Compass, LayoutDashboard, LogOut, Map, MessageSquareMore, Route, Settings, ShieldCheck, UsersRound } from "lucide-react";
@@ -18,6 +18,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
   const router = useRouter();
   const { locale, setLocale, t } = useLanguage();
   const c = featureCopy(locale);
+  const [pendingFriendRequests, setPendingFriendRequests] = useState(0);
   const nav: Array<readonly [string, string, LucideIcon]> = [
     ["/dashboard", c.navHome, LayoutDashboard], ["/logbook", c.navLogbook, BookOpenText],
     ["/friends", c.navFriends, UsersRound], ["/map", c.navMap, Map],
@@ -30,6 +31,17 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
 
   useEffect(() => { if (!preferredLocaleApplied.current) { preferredLocaleApplied.current = true; if (["en", "fr", "es"].includes(user.locale) && locale !== user.locale) setLocale(user.locale as typeof locale); } }, [locale, setLocale, user.locale]);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch("/api/friends", { signal: controller.signal })
+      .then((response) => response.ok ? response.json() : { incoming: [] })
+      .then((data) => setPendingFriendRequests(data.incoming?.length ?? 0))
+      .catch(() => undefined);
+    const updateCount = (event: Event) => setPendingFriendRequests((event as CustomEvent<{ count: number }>).detail.count);
+    window.addEventListener("bluemates:friend-requests", updateCount);
+    return () => { controller.abort(); window.removeEventListener("bluemates:friend-requests", updateCount); };
+  }, [pathname]);
+
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/auth"); router.refresh();
@@ -41,7 +53,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
         <div className="sidebar-brand"><Brand compact /></div>
         <nav className="app-nav">
           {nav.map(([href, label, Icon]) => (
-            <Link className={pathname === href ? "active" : ""} href={href} key={href}><Icon size={18} /><span>{label}</span></Link>
+            <Link className={pathname === href || (href.startsWith("/admin") && pathname.startsWith("/admin")) ? "active" : ""} href={href} key={href}><Icon size={18} /><span>{label}</span>{href === "/friends" && pendingFriendRequests > 0 && <b className="friend-request-badge">{pendingFriendRequests}</b>}</Link>
           ))}
         </nav>
         <div className="sidebar-depth"><Compass size={26} /><span>BLUEMATES</span><small>{t.sidebarTagline}</small></div>
@@ -50,7 +62,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
         <header className="app-topbar">
           <div className="mobile-brand"><Brand compact /></div>
           <div className="mobile-nav">
-            {nav.map(([href, label, Icon]) => <Link className={pathname === href ? "active" : ""} href={href} key={href}><Icon size={16} /><span>{label}</span></Link>)}
+            {nav.map(([href, label, Icon]) => <Link className={pathname === href || (href.startsWith("/admin") && pathname.startsWith("/admin")) ? "active" : ""} href={href} key={href}><Icon size={16} /><span>{label}</span>{href === "/friends" && pendingFriendRequests > 0 && <b className="friend-request-badge">{pendingFriendRequests}</b>}</Link>)}
           </div>
           <div className="topbar-actions">
             <LanguageSwitcher />

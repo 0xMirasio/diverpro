@@ -32,6 +32,7 @@ enum UserRole {
 enum DiveSiteSource {
   OSM
   OPEN_DIVEMAP
+  EMODNET_WRECK
   COMMUNITY
 }
 

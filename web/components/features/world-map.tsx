@@ -12,7 +12,10 @@ type PointType = MapPoint["type"];
 export function WorldMapFeature({ embedded = false }: { embedded?: boolean }) {
   const { locale } = useLanguage();
   const c = featureCopy(locale);
-  const [points, setPoints] = useState<MapPoint[]>([]);
+  const [activityPoints, setActivityPoints] = useState<MapPoint[]>([]);
+  const [sitePoints, setSitePoints] = useState<MapPoint[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [catalogueLoaded, setCatalogueLoaded] = useState(false);
   const [filters, setFilters] = useState<Record<PointType, boolean>>({ dive: true, plan: true, review: false, site: false });
   const [showFriendActivity, setShowFriendActivity] = useState(true);
 
@@ -20,18 +23,28 @@ export function WorldMapFeature({ embedded = false }: { embedded?: boolean }) {
     const controller = new AbortController();
     void fetch("/api/map", { signal: controller.signal })
       .then((response) => response.ok ? response.json() : { points: [] })
-      .then((data) => setPoints(data.points ?? []))
-      .catch(() => undefined);
+      .then((data) => setActivityPoints(data.points ?? []))
+      .catch(() => undefined)
+      .finally(() => setLoading(false));
     return () => controller.abort();
   }, []);
 
-  const visiblePoints = useMemo(() => points.filter((point) => filters[point.type] && (showFriendActivity || point.source !== "friend")), [filters, points, showFriendActivity]);
+  const points = useMemo(() => [...activityPoints, ...sitePoints], [activityPoints, sitePoints]);
+  const visibleTypes = useMemo(() => (Object.entries(filters).filter(([, visible]) => visible).map(([type]) => type)) as PointType[], [filters]);
+  const visibleCount = useMemo(() => points.filter((point) => filters[point.type] && (showFriendActivity || point.source !== "friend")).length, [filters, points, showFriendActivity]);
   const labels = useMemo(() => ({ completedDive: c.completedDive, futureDive: c.futureDive, siteReview: c.siteReview, diveSite: c.diveSite, viewSite: c.viewSite }), [c.completedDive, c.diveSite, c.futureDive, c.siteReview, c.viewSite]);
-  const dataCredit = locale === "fr" ? "Sites © contributeurs OpenStreetMap et OpenDiveMap · ODbL · Fond de carte © OpenFreeMap" : locale === "es" ? "Sitios © colaboradores de OpenStreetMap y OpenDiveMap · ODbL · Mapa base © OpenFreeMap" : "Dive sites © OpenStreetMap and OpenDiveMap contributors · ODbL · Basemap © OpenFreeMap";
-  const countBadge = <div className="map-count"><Globe2 size={18} /><strong>{visiblePoints.length}</strong><span>PIN{visiblePoints.length === 1 ? "" : "S"}</span></div>;
-  const choices: [PointType, string][] = [["dive", c.completedDive], ["plan", c.futureDive], ["site", c.showDiveSites]];
+  const dataCredit = locale === "fr" ? "Sites © contributeurs OpenStreetMap et OpenDiveMap · Épaves © UK Hydrographic Office via EMODnet · Fond de carte © OpenFreeMap" : locale === "es" ? "Sitios © colaboradores de OpenStreetMap y OpenDiveMap · Pecios © UK Hydrographic Office vía EMODnet · Mapa base © OpenFreeMap" : "Dive sites © OpenStreetMap and OpenDiveMap contributors · Wrecks © UK Hydrographic Office via EMODnet · Basemap © OpenFreeMap";
+  const countBadge = <div className="map-count"><Globe2 size={18} /><strong>{visibleCount}</strong><span>PIN{visibleCount === 1 ? "" : "S"}</span></div>;
+  const choices: [PointType, string][] = [["dive", c.completedDive], ["plan", c.futureDive], ["review", c.siteReview], ["site", c.showDiveSites]];
 
   function toggle(type: PointType) {
+    if (type === "site" && !filters.site && !catalogueLoaded) {
+      setCatalogueLoaded(true);
+      void fetch("/api/sites/map")
+        .then((response) => { if (!response.ok) throw new Error("CATALOGUE_LOAD_FAILED"); return response.json(); })
+        .then((data) => setSitePoints(data.points ?? []))
+        .catch(() => setCatalogueLoaded(false));
+    }
     setFilters((current) => ({ ...current, [type]: !current[type] }));
   }
 
@@ -44,8 +57,8 @@ export function WorldMapFeature({ embedded = false }: { embedded?: boolean }) {
       <button type="button" className={`friend-filter ${showFriendActivity ? "active" : ""}`} aria-pressed={showFriendActivity} onClick={() => setShowFriendActivity((current) => !current)}><span className="friend-shapes"><i /><i /></span>{c.friendActivity}</button>
     </div>
     <div className="map-frame">
-      {points.length === 0 && <div className="map-loading"><MapPin size={24} /><span>{c.loadingMap}</span></div>}
-      <MapCanvas points={visiblePoints} locale={locale} labels={labels} catalogueLayer />
+      {loading && <div className="map-loading"><MapPin size={24} /><span>{c.loadingMap}</span></div>}
+      <MapCanvas points={points} locale={locale} labels={labels} catalogueLayer visibleTypes={visibleTypes} showFriendActivity={showFriendActivity} />
     </div>
     <p className="map-hint"><Star size={14} />{c.mapHint}</p>
     <p className="map-hint site-credit">{dataCredit}</p>

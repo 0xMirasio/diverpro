@@ -11,7 +11,7 @@ type Diver = { publicId: string; username: string; firstName: string | null; las
 
 export function FriendsFeature() {
   const { locale } = useLanguage(); const c = featureCopy(locale); const [results, setResults] = useState<Diver[]>([]); const [friends, setFriends] = useState<Diver[]>([]); const [incoming, setIncoming] = useState<Diver[]>([]); const [outgoing, setOutgoing] = useState<Diver[]>([]); const [loading, setLoading] = useState(false); const [message, setMessage] = useState("");
-  async function load() { const response = await fetch("/api/friends"); if (response.ok) { const data = await response.json(); setFriends(data.friends); setIncoming(data.incoming); setOutgoing(data.outgoing); } }
+  async function load() { const response = await fetch("/api/friends"); if (response.ok) { const data = await response.json(); setFriends(data.friends); setIncoming(data.incoming); setOutgoing(data.outgoing); window.dispatchEvent(new CustomEvent("bluemates:friend-requests", { detail: { count: data.incoming.length } })); } }
   useEffect(() => { const timer = window.setTimeout(() => void load(), 0); return () => window.clearTimeout(timer); }, []);
   async function search(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setLoading(true); const q = new FormData(event.currentTarget).get("q"); const response = await fetch(`/api/divers/search?q=${encodeURIComponent(String(q))}`); if (response.ok) setResults((await response.json()).divers); setLoading(false); }
   async function connect(identifier: string) { const response = await fetch("/api/friends/requests", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ identifier }) }); setMessage(response.ok ? c.requestSent : c.genericError); await load(); }

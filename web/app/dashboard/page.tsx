@@ -6,9 +6,10 @@ import { db } from "@/lib/db";
 
 export default async function DashboardPage() {
   const user = await currentUser(); if (!user) redirect("/auth");
-  const [diveAggregate, plans, friendships, reviews] = await Promise.all([
+  const [diveAggregate, plans, friendships, reviews, pendingFriendRequests] = await Promise.all([
     db.dive.aggregate({ where: { userId: user.id }, _sum: { groupCount: true } }), db.plannedDive.count({ where: { userId: user.id, plannedUntil: { gte: new Date(`${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`) } } }),
     db.friendship.count({ where: { status: "ACCEPTED", OR: [{ requesterId: user.id }, { recipientId: user.id }] } }), db.siteReview.count({ where: { userId: user.id } }),
+    db.friendship.count({ where: { status: "PENDING", recipientId: user.id } }),
   ]);
-  return <AppShell user={user}><DashboardOverview user={user} counts={{ dives: diveAggregate._sum.groupCount ?? 0, plans, friendships, reviews }} /></AppShell>;
+  return <AppShell user={user}><DashboardOverview user={user} counts={{ dives: diveAggregate._sum.groupCount ?? 0, plans, friendships, reviews, pendingFriendRequests }} /></AppShell>;
 }

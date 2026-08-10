@@ -8,7 +8,7 @@ import { MapCanvas, type MapPoint } from "@/components/features/map-canvas";
 import { featureCopy } from "@/lib/features-i18n";
 
 type ProfileDive = { id: string; date: string; siteName: string; depthM: number; durationMinutes: number; groupCount: number; details: string | null; latitude: number | null; longitude: number | null; photos: { id: string }[] };
-type ProfilePlan = { id: string; plannedFor: string; plannedUntil: string; siteName: string; details: string | null };
+type ProfilePlan = { id: string; plannedFor: string; plannedUntil: string; siteName: string; details: string | null; latitude: number | null; longitude: number | null };
 type ProfileReview = { id: string; siteName: string; rating: number; comment: string | null; photos: { id: string }[] };
 type ProfileData = { publicId: string; username: string; firstName: string | null; lastName: string | null; bio: string | null; avatarUrl: string | null; age: number | null; createdAt: string; full: boolean; self: boolean; relationship: { status: string; incoming: boolean } | null; dives: ProfileDive[]; plans: ProfilePlan[]; reviews: ProfileReview[] };
 
@@ -21,7 +21,10 @@ export function PublicProfile({ profile }: { profile: ProfileData }) {
   const initials = `${profile.firstName?.[0] ?? profile.username[0] ?? "D"}${profile.lastName?.[0] ?? ""}`.toUpperCase();
   const totalDives = profile.dives.reduce((total, dive) => total + dive.groupCount, 0);
   const labels = useMemo(() => ({ completedDive: c.completedDive, futureDive: c.futureDive, siteReview: c.siteReview }), [c.completedDive, c.futureDive, c.siteReview]);
-  const mapPoints = useMemo<MapPoint[]>(() => profile.dives.flatMap((dive) => dive.latitude == null || dive.longitude == null ? [] : [{ id: dive.id, type: "dive" as const, siteName: dive.siteName, latitude: dive.latitude, longitude: dive.longitude, date: dive.date, owner: { publicId: profile.publicId, username: profile.username } }]), [profile.dives, profile.publicId, profile.username]);
+  const mapPoints = useMemo<MapPoint[]>(() => [
+    ...profile.dives.flatMap((dive) => dive.latitude == null || dive.longitude == null ? [] : [{ id: dive.id, type: "dive" as const, siteName: dive.siteName, latitude: dive.latitude, longitude: dive.longitude, date: dive.date, owner: { publicId: profile.publicId, username: profile.username } }]),
+    ...profile.plans.flatMap((plan) => plan.latitude == null || plan.longitude == null ? [] : [{ id: plan.id, type: "plan" as const, source: profile.self ? "self" as const : "friend" as const, siteName: plan.siteName, latitude: plan.latitude, longitude: plan.longitude, date: plan.plannedFor, endDate: plan.plannedUntil, owner: { publicId: profile.publicId, username: profile.username } }]),
+  ], [profile.dives, profile.plans, profile.publicId, profile.self, profile.username]);
 
   async function connect() {
     const response = await fetch("/api/friends/requests", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ identifier: profile.publicId }) });

@@ -20,12 +20,24 @@ export type MapPoint = {
   locationLabel?: string | null;
   maxDepthM?: number | null;
   environment?: string | null;
+  topologies?: unknown;
 };
 
 type MapLabels = { completedDive: string; futureDive: string; siteReview: string; diveSite?: string; viewSite?: string };
 
-export function MapCanvas({ points, locale, labels, className = "", fitPoints = false, catalogueLayer = false }: { points: MapPoint[]; locale: Locale; labels: MapLabels; className?: string; fitPoints?: boolean; catalogueLayer?: boolean }) {
+export function MapCanvas({ points, locale, labels, className = "", fitPoints = false, catalogueLayer = false, visibleTypes, showFriendActivity = true }: { points: MapPoint[]; locale: Locale; labels: MapLabels; className?: string; fitPoints?: boolean; catalogueLayer?: boolean; visibleTypes?: MapPoint["type"][]; showFriendActivity?: boolean }) {
   const container = useRef<HTMLDivElement>(null);
+  const mapInstance = useRef<import("maplibre-gl").Map | null>(null);
+  const markerElements = useRef<Array<{ element: HTMLElement; type: MapPoint["type"]; source?: MapPoint["source"] }>>([]);
+  const visibility = useRef({ types: visibleTypes ?? ["dive", "plan", "review", "site"], showFriendActivity });
+
+  useEffect(() => {
+    const current = { types: visibleTypes ?? ["dive", "plan", "review", "site"], showFriendActivity };
+    visibility.current = current;
+    for (const marker of markerElements.current) marker.element.style.display = current.types.includes(marker.type) && (current.showFriendActivity || marker.source !== "friend") ? "" : "none";
+    const map = mapInstance.current;
+    if (map?.getLayer("bluemates-dive-sites")) map.setLayoutProperty("bluemates-dive-sites", "visibility", current.types.includes("site") ? "visible" : "none");
+  }, [showFriendActivity, visibleTypes]);
 
   useEffect(() => {
     if (!container.current) return;
@@ -41,6 +53,7 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
         center: fitPoints && points.length === 1 ? [points[0].longitude, points[0].latitude] : [3, 22],
         zoom: fitPoints && points.length === 1 ? 7 : 1.25,
       });
+      mapInstance.current = map;
       map.addControl(new maplibre.NavigationControl({ visualizePitch: true }), "top-right");
       map.addControl(new maplibre.GlobeControl(), "top-right");
 
@@ -75,7 +88,8 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
         content.append(kind, title, meta);
         if (point.locationLabel) { const location = document.createElement("b"); location.textContent = point.locationLabel; content.append(location); }
         const coordinates = document.createElement("code"); coordinates.textContent = `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`; content.append(coordinates);
-        if (point.maxDepthM != null || point.environment) { const facts = document.createElement("small"); facts.textContent = [point.environment, point.maxDepthM != null ? `${point.maxDepthM} m` : null].filter(Boolean).join(" · "); content.append(facts); }
+        const topologies = Array.isArray(point.topologies) ? point.topologies.filter((value): value is string => typeof value === "string") : [];
+        if (point.maxDepthM != null || point.environment || topologies.length) { const facts = document.createElement("small"); facts.textContent = [...topologies, point.environment, point.maxDepthM != null ? `${point.maxDepthM} m` : null].filter(Boolean).join(" · "); content.append(facts); }
         if (point.description) { const description = document.createElement("p"); description.textContent = point.description.slice(0, 180); content.append(description); }
         if (point.href) {
           const siteLink = document.createElement("a"); siteLink.href = point.href; siteLink.className = "map-popup-site-link";
@@ -101,6 +115,8 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
             markerElement.title = point.siteName;
             markerElement.setAttribute("aria-label", point.siteName);
           }
+          markerElement.style.display = visibility.current.types.includes(point.type) && (visibility.current.showFriendActivity || point.source !== "friend") ? "" : "none";
+          markerElements.current.push({ element: markerElement, type: point.type, source: point.source });
           new maplibre.Marker({ element: markerElement, anchor: "bottom" })
             .setLngLat([point.longitude, point.latitude])
             .setPopup(new maplibre.Popup({ offset: point.type === "site" ? 36 : 18, closeButton: false }).setDOMContent(popupContent(point)))
@@ -113,18 +129,19 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
             type: "geojson",
             data: {
               type: "FeatureCollection",
-              features: catalogue.map((point) => ({ type: "Feature", geometry: { type: "Point", coordinates: [point.longitude, point.latitude] }, properties: { id: point.id } })),
+              features: catalogue.map((point) => ({ type: "Feature", geometry: { type: "Point", coordinates: [point.longitude, point.latitude] }, properties: { id: point.id, isWreck: Array.isArray(point.topologies) && point.topologies.includes("wreck") } })),
             },
           });
           map?.addLayer({
             id: "bluemates-dive-sites",
             type: "circle",
             source: "bluemates-dive-sites",
+            layout: { visibility: visibility.current.types.includes("site") ? "visible" : "none" },
             paint: {
               "circle-radius": ["interpolate", ["linear"], ["zoom"], 0, 2.5, 5, 4.5, 10, 7],
-              "circle-color": "#f1c443",
+              "circle-color": ["case", ["==", ["get", "isWreck"], true], "#e87550", "#f1c443"],
               "circle-opacity": 0.26,
-              "circle-stroke-color": "#c69718",
+              "circle-stroke-color": ["case", ["==", ["get", "isWreck"], true], "#9f3d24", "#c69718"],
               "circle-stroke-opacity": 0.46,
               "circle-stroke-width": 1,
             },
@@ -135,7 +152,10 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
             const point = catalogueById.get(id);
             if (point) {
               selectedSiteMarker?.remove();
-              selectedSiteMarker = new maplibre.Marker({ element: siteMarkerElement(point, true), anchor: "bottom" })
+              const selectedElement = siteMarkerElement(point, true);
+              selectedElement.style.display = visibility.current.types.includes("site") ? "" : "none";
+              markerElements.current.push({ element: selectedElement, type: "site", source: point.source });
+              selectedSiteMarker = new maplibre.Marker({ element: selectedElement, anchor: "bottom" })
                 .setLngLat([point.longitude, point.latitude])
                 .setPopup(new maplibre.Popup({ offset: 36, closeButton: true, closeOnClick: false }).setDOMContent(popupContent(point)))
                 .addTo(map!);
@@ -154,7 +174,7 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
       });
     });
 
-    return () => { disposed = true; map?.remove(); };
+    return () => { disposed = true; markerElements.current = []; if (mapInstance.current === map) mapInstance.current = null; map?.remove(); };
   }, [catalogueLayer, fitPoints, labels.completedDive, labels.diveSite, labels.futureDive, labels.siteReview, labels.viewSite, locale, points]);
 
   return <div className={`world-map ${className}`} ref={container} />;
