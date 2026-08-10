@@ -75,7 +75,7 @@ export async function geocode(path: "api" | "reverse", params: URLSearchParams) 
   if (cached && cached.expiresAt > Date.now()) return cached.results;
 
   const response = await fetch(url, {
-    headers: { Accept: "application/geo+json, application/json", "User-Agent": "DiverPro/0.1 geocoding-proxy" },
+    headers: { Accept: "application/geo+json, application/json", "User-Agent": "BlueMates/1.0 geocoding-proxy" },
     signal: AbortSignal.timeout(7000),
     cache: "no-store",
   });

@@ -23,7 +23,18 @@ describe("diving feature validation", () => {
 
   it("accepts grouped dives but limits the group size", () => {
     const base = { date: "2026-08-09", siteName: "Reef", depthM: 20, durationMinutes: 40 };
-    expect(diveSchema.safeParse({ ...base, groupCount: 10 }).success).toBe(true);
+    const dive = diveSchema.safeParse({ ...base, groupCount: 10 });
+    expect(dive.success).toBe(true);
+    if (dive.success) expect(dive.data.visibility).toBe("PUBLIC");
     expect(diveSchema.safeParse({ ...base, groupCount: 101 }).success).toBe(false);
+  });
+
+  it("makes new planned dives public unless privacy is explicitly selected", () => {
+    const plan = planSchema.safeParse({
+      plannedFor: "2027-01-01", plannedUntil: "2027-01-08", siteName: "Reef",
+      latitude: null, longitude: null,
+    });
+    expect(plan.success).toBe(true);
+    if (plan.success) expect(plan.data.visibility).toBe("PUBLIC");
   });
 });

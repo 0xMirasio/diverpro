@@ -38,7 +38,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
             <Link className={pathname === href ? "active" : ""} href={href} key={href}><Icon size={18} /><span>{label}</span></Link>
           ))}
         </nav>
-        <div className="sidebar-depth"><Compass size={26} /><span>DIVERPRO</span><small>EXPLORE · LOG · CONNECT</small></div>
+        <div className="sidebar-depth"><Compass size={26} /><span>BLUEMATES</span><small>EXPLORE · LOG · CONNECT</small></div>
       </aside>
       <section className="app-main">
         <header className="app-topbar">

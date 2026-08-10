@@ -68,7 +68,7 @@ export function AuthPanel() {
   return (
     <div className="auth-card">
       <div className="auth-card-heading">
-        <span className="eyebrow">DIVERPRO ACCESS</span>
+        <span className="eyebrow">BLUEMATES ACCESS</span>
         <h2>{mode === "login" ? t.welcome : t.create}</h2>
         <p>{mode === "login" ? t.welcomeSub : t.createSub}</p>
       </div>

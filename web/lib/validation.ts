@@ -40,7 +40,7 @@ export const diveSchema = z
     durationMinutes: z.number().int().positive().max(1440),
     groupCount: z.number().int().min(1).max(100).default(1),
     details: z.string().trim().max(4000).optional().default(""),
-    visibility: visibilitySchema.default("PRIVATE"),
+    visibility: visibilitySchema.default("PUBLIC"),
     photoIds: z.array(z.string().uuid()).max(6).default([]),
   })
   .and(coordinates);
@@ -51,7 +51,7 @@ export const planSchema = z
     plannedUntil: z.string().date(),
     siteName: z.string().trim().min(2).max(160),
     details: z.string().trim().max(4000).optional().default(""),
-    visibility: visibilitySchema.default("PRIVATE"),
+    visibility: visibilitySchema.default("PUBLIC"),
   })
   .and(coordinates)
   .refine((value) => value.plannedUntil >= value.plannedFor, "End date must be on or after start date");

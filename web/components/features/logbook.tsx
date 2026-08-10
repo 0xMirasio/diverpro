@@ -12,8 +12,8 @@ export function LogbookFeature() {
   const { locale } = useLanguage();
   const c = featureCopy(locale);
   const [dives, setDives] = useState<Dive[]>([]);
-  const [bookVisibility, setBookVisibility] = useState<"PUBLIC" | "PRIVATE">("PRIVATE");
-  const [diveVisibility, setDiveVisibility] = useState<"PUBLIC" | "PRIVATE">("PRIVATE");
+  const [bookVisibility, setBookVisibility] = useState<"PUBLIC" | "PRIVATE">("PUBLIC");
+  const [diveVisibility, setDiveVisibility] = useState<"PUBLIC" | "PRIVATE">("PUBLIC");
   const [siteName, setSiteName] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");

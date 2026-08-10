@@ -31,10 +31,10 @@ port = http,https
 logpath = /var/log/nginx/error.log
 maxretry = 8
 
-[nginx-diverpro-scanner]
+[nginx-bluemates-scanner]
 enabled = true
 port = http,https
-filter = nginx-diverpro-scanner
+filter = nginx-bluemates-scanner
 logpath = /var/log/nginx/access.log
 maxretry = 2
 findtime = 10m

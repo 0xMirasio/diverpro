@@ -1,4 +1,4 @@
-# DiverPro Android (migration placeholder)
+# BlueMates Android (migration placeholder)
 
 Reserved for the future Android client. The recommended migration path is React Native/Expo so UI logic and translations can be shared with iOS while authentication continues through the web service JSON API.
 

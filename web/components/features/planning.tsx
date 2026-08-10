@@ -14,7 +14,7 @@ export function PlanningFeature() {
   const { locale } = useLanguage();
   const c = featureCopy(locale);
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [visibility, setVisibility] = useState<"PUBLIC" | "PRIVATE">("PRIVATE");
+  const [visibility, setVisibility] = useState<"PUBLIC" | "PRIVATE">("PUBLIC");
   const [siteName, setSiteName] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");

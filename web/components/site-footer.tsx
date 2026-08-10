@@ -15,8 +15,8 @@ export function SiteFooter({ variant = "default" }: { variant?: "default" | "ove
       <div className="footer-identity">
         <Brand compact />
         <p>{c.footerTagline}</p>
-        <small className="footer-version">DiverPro WebApp version {APP_VERSION}</small>
-        <small>© 2026 DiverPro · {c.footerRights}</small>
+        <small className="footer-version">BlueMates WebApp version {APP_VERSION}</small>
+        <small>© 2026 BlueMates · {c.footerRights}</small>
       </div>
       <div className="footer-apps">
         <span>{c.mobileApps}</span>

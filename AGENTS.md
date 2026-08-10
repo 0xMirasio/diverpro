@@ -1,4 +1,4 @@
-# DiverPro repository instructions
+# BlueMates repository instructions
 
 ## WebApp versioning
 

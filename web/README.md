@@ -1,6 +1,6 @@
-# DiverPro web
+# BlueMates web
 
-A responsive, trilingual authentication foundation for DiverPro. The application uses Next.js, PostgreSQL, Prisma migrations, bcrypt password hashing and signed HTTP-only session cookies.
+A responsive, trilingual authentication foundation for BlueMates. The application uses Next.js, PostgreSQL, Prisma migrations, bcrypt password hashing and signed HTTP-only session cookies.
 
 ## Product modules
 
@@ -12,7 +12,7 @@ A responsive, trilingual authentication foundation for DiverPro. The application
 - Future-dive planning with GPS and per-plan privacy.
 - Geolocated 1–5 star site reviews with comments and photos.
 
-All visibility checks are enforced in server queries and media delivery routes, not only hidden in the interface.
+New profiles, logbooks, dives and planned dives are public by default; members can explicitly switch each supported scope to private. Existing privacy choices are preserved. All visibility checks are enforced in server queries and media delivery routes, not only hidden in the interface.
 
 ## Run with Docker
 

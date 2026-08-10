@@ -4,7 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DiverPro — Your diving companion",
+  title: "BlueMates — Your diving companion",
   description: "Plan, log and relive your scuba diving adventures.",
 };
 

@@ -39,7 +39,7 @@ model User {
   bio               String?    @db.VarChar(500)
   avatarUrl         String?    @map("avatar_url")
   profileVisibility Visibility @default(PUBLIC) @map("profile_visibility")
-  logbookVisibility Visibility @default(PRIVATE) @map("logbook_visibility")
+  logbookVisibility Visibility @default(PUBLIC) @map("logbook_visibility")
   createdAt         DateTime   @default(now()) @map("created_at")
   updatedAt         DateTime   @updatedAt @map("updated_at")
 
@@ -80,7 +80,7 @@ model Dive {
   details         String?    @db.Text
   latitude        Float?
   longitude       Float?
-  visibility      Visibility @default(PRIVATE)
+  visibility      Visibility @default(PUBLIC)
   createdAt       DateTime   @default(now()) @map("created_at")
   updatedAt       DateTime   @updatedAt @map("updated_at")
   user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -100,7 +100,7 @@ model PlannedDive {
   details    String?    @db.Text
   latitude   Float?
   longitude  Float?
-  visibility Visibility @default(PRIVATE)
+  visibility Visibility @default(PUBLIC)
   createdAt  DateTime   @default(now()) @map("created_at")
   updatedAt  DateTime   @updatedAt @map("updated_at")
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)

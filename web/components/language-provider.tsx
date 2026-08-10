@@ -15,7 +15,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("en");
 
   useEffect(() => {
-    const saved = window.localStorage.getItem("diverpro_locale") as Locale | null;
+    const saved = window.localStorage.getItem("bluemates_locale") as Locale | null;
     const browser = window.navigator.language.slice(0, 2) as Locale;
     const next = saved && locales.includes(saved) ? saved : locales.includes(browser) ? browser : "en";
     const timer = window.setTimeout(() => {
@@ -26,7 +26,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const setLocale = (next: Locale) => {
-    window.localStorage.setItem("diverpro_locale", next);
+    window.localStorage.setItem("bluemates_locale", next);
     document.documentElement.lang = next;
     setLocaleState(next);
   };

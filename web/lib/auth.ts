@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import { db } from "@/lib/db";
 
-const SESSION_COOKIE = "diverpro_session";
+const SESSION_COOKIE = "bluemates_session";
 const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7;
 
 function shouldUseSecureCookie() {
