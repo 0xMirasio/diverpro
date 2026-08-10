@@ -1,15 +1,17 @@
+name: bluemates
+
 services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: diverpro
-      POSTGRES_USER: diverpro
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-diverpro}
+      POSTGRES_DB: ${POSTGRES_DB:-bluemates}
+      POSTGRES_USER: ${POSTGRES_USER:-bluemates}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bluemates}
     volumes:
-      - diverpro_postgres:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U diverpro -d diverpro"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bluemates} -d ${POSTGRES_DB:-bluemates}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -18,14 +20,14 @@ services:
     build: ./web
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://diverpro:${POSTGRES_PASSWORD:-diverpro}@db:5432/diverpro?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-bluemates}:${POSTGRES_PASSWORD:-bluemates}@db:5432/${POSTGRES_DB:-bluemates}?schema=public
       AUTH_SECRET: ${AUTH_SECRET:-local-development-secret-change-before-production}
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-true}
       NEXT_PUBLIC_GOOGLE_AUTH_ENABLED: "false"
       UPLOAD_DIR: /app/data/uploads
       GEOCODER_URL: ${GEOCODER_URL:-https://photon.komoot.io}
     volumes:
-      - diverpro_uploads:/app/data/uploads
+      - uploads_data:/app/data/uploads
     ports:
       - "${WEB_BIND_ADDRESS:-0.0.0.0}:3000:3000"
     depends_on:
@@ -33,5 +35,7 @@ services:
         condition: service_healthy
 
 volumes:
-  diverpro_postgres:
-  diverpro_uploads:
+  postgres_data:
+    name: ${POSTGRES_VOLUME_NAME:-bluemates_postgres}
+  uploads_data:
+    name: ${UPLOAD_VOLUME_NAME:-bluemates_uploads}

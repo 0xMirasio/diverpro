@@ -22,7 +22,7 @@ From the repository root:
 AUTH_SECRET="replace-this-with-a-long-random-production-secret" docker compose up --build
 ```
 
-Open `http://localhost:3000`. PostgreSQL data is kept in `diverpro_postgres`; uploaded media is kept in `diverpro_uploads` and served through an authenticated API route.
+Open `http://localhost:3000`. PostgreSQL data is kept in `bluemates_postgres`; uploaded media is kept in `bluemates_uploads` and served through an authenticated API route.
 
 ## Run locally
 
