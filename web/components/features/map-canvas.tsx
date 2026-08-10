@@ -22,7 +22,7 @@ export type MapPoint = {
   environment?: string | null;
 };
 
-type MapLabels = { completedDive: string; futureDive: string; siteReview: string; diveSite?: string };
+type MapLabels = { completedDive: string; futureDive: string; siteReview: string; diveSite?: string; viewSite?: string };
 
 export function MapCanvas({ points, locale, labels, className = "", fitPoints = false, catalogueLayer = false }: { points: MapPoint[]; locale: Locale; labels: MapLabels; className?: string; fitPoints?: boolean; catalogueLayer?: boolean }) {
   const container = useRef<HTMLDivElement>(null);
@@ -44,7 +44,7 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
       map.addControl(new maplibre.NavigationControl({ visualizePitch: true }), "top-right");
       map.addControl(new maplibre.GlobeControl(), "top-right");
 
-      function siteMarkerElement(point: MapPoint) {
+      function siteMarkerElement(point: MapPoint, linkToDetails = false) {
         const marker = document.createElement("button");
         marker.type = "button";
         marker.className = "selected-site-marker";
@@ -54,6 +54,10 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
         pin.className = "selected-site-pin";
         const dot = document.createElement("i");
         pin.append(dot); marker.append(pin);
+        if (linkToDetails && point.href) marker.addEventListener("click", (event) => {
+          event.preventDefault(); event.stopImmediatePropagation();
+          window.location.assign(point.href!);
+        });
         return marker;
       }
 
@@ -73,7 +77,11 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
         const coordinates = document.createElement("code"); coordinates.textContent = `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`; content.append(coordinates);
         if (point.maxDepthM != null || point.environment) { const facts = document.createElement("small"); facts.textContent = [point.environment, point.maxDepthM != null ? `${point.maxDepthM} m` : null].filter(Boolean).join(" · "); content.append(facts); }
         if (point.description) { const description = document.createElement("p"); description.textContent = point.description.slice(0, 180); content.append(description); }
-        if (point.href) { const siteLink = document.createElement("a"); siteLink.href = point.href; siteLink.textContent = point.siteName; content.append(siteLink); }
+        if (point.href) {
+          const siteLink = document.createElement("a"); siteLink.href = point.href; siteLink.className = "map-popup-site-link";
+          siteLink.textContent = labels.viewSite || point.siteName; siteLink.setAttribute("aria-label", `${labels.viewSite || "View site"}: ${point.siteName}`);
+          siteLink.addEventListener("click", (event) => event.stopPropagation()); content.append(siteLink);
+        }
         if (point.owner?.publicId && point.owner.username) {
           const link = document.createElement("a"); link.href = `/profile/${point.owner.publicId}`; link.textContent = `@${point.owner.username}`; content.append(link);
         }
@@ -127,9 +135,9 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
             const point = catalogueById.get(id);
             if (point) {
               selectedSiteMarker?.remove();
-              selectedSiteMarker = new maplibre.Marker({ element: siteMarkerElement(point), anchor: "bottom" })
+              selectedSiteMarker = new maplibre.Marker({ element: siteMarkerElement(point, true), anchor: "bottom" })
                 .setLngLat([point.longitude, point.latitude])
-                .setPopup(new maplibre.Popup({ offset: 36, closeButton: false }).setDOMContent(popupContent(point)))
+                .setPopup(new maplibre.Popup({ offset: 36, closeButton: true, closeOnClick: false }).setDOMContent(popupContent(point)))
                 .addTo(map!);
               selectedSiteMarker.togglePopup();
             }
@@ -147,7 +155,7 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
     });
 
     return () => { disposed = true; map?.remove(); };
-  }, [catalogueLayer, fitPoints, labels.completedDive, labels.diveSite, labels.futureDive, labels.siteReview, locale, points]);
+  }, [catalogueLayer, fitPoints, labels.completedDive, labels.diveSite, labels.futureDive, labels.siteReview, labels.viewSite, locale, points]);
 
   return <div className={`world-map ${className}`} ref={container} />;
 }

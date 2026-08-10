@@ -13,7 +13,7 @@ export function SiteDetailFeature({ siteId }: { siteId: string }) {
   const { locale } = useLanguage(); const c = featureCopy(locale); const [site, setSite] = useState<Site | null>(null); const [editing, setEditing] = useState(false); const [pending, setPending] = useState(false);
   async function load() { const response = await fetch(`/api/sites/${siteId}`); if (response.ok) setSite((await response.json()).site); }
   useEffect(() => { const controller = new AbortController(); const timer = window.setTimeout(async () => { const response = await fetch(`/api/sites/${siteId}`, { signal: controller.signal }); if (response.ok) setSite((await response.json()).site); }, 0); return () => { controller.abort(); window.clearTimeout(timer); }; }, [siteId]);
-  const labels = useMemo(() => ({ completedDive: c.completedDive, futureDive: c.futureDive, siteReview: c.siteReview, diveSite: c.diveSite }), [c.completedDive, c.diveSite, c.futureDive, c.siteReview]);
+  const labels = useMemo(() => ({ completedDive: c.completedDive, futureDive: c.futureDive, siteReview: c.siteReview, diveSite: c.diveSite, viewSite: c.viewSite }), [c.completedDive, c.diveSite, c.futureDive, c.siteReview, c.viewSite]);
   const dataCredit = locale === "fr" ? "Sites © contributeurs OpenStreetMap et OpenDiveMap · ODbL · Fond de carte © OpenFreeMap" : locale === "es" ? "Sitios © colaboradores de OpenStreetMap y OpenDiveMap · ODbL · Mapa base © OpenFreeMap" : "Dive sites © OpenStreetMap and OpenDiveMap contributors · ODbL · Basemap © OpenFreeMap";
   if (!site) return <div className="map-loading standalone"><MapPin size={24} />{c.loading}</div>;
   const locationLabel = [site.seaName, site.countryName].filter(Boolean).join(" · ") || null;

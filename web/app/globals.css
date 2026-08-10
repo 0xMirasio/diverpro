@@ -252,6 +252,8 @@ button { cursor: pointer; }
 
 .site-facts { display: flex; flex-wrap: wrap; gap: 6px; margin: 9px 0; }.site-facts b { padding: 5px 8px; color: #d8f3f6; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.14); border-radius: 999px; font-size: 8px; font-weight: 750; text-transform: capitalize; }
 
+.map-popup .map-popup-site-link { width: fit-content; padding: 7px 10px; color: #fff; background: #087b9e; border-radius: 7px; font-size: 8px; font-weight: 800; }.map-popup .map-popup-site-link:hover, .map-popup .map-popup-site-link:focus-visible { background: #075a76; text-decoration: underline; }
+
 @media (max-width: 1050px) {
   .app-layout { grid-template-columns: 190px minmax(0,1fr); }.app-content { width: calc(100% - 34px); }.logbook-surface, .two-column-feature { grid-template-columns: 1fr; }.logbook-entries { max-height: none; }.friends-columns, .profile-settings-grid { grid-template-columns: 1fr; }.identity-pass { grid-template-columns: auto 1fr; justify-items: start; text-align: left; }.profile-photo-large { grid-row: 1/6; margin: 0 20px 0 0; }.identity-pass p { grid-column: 1/3; }.metric-grid { grid-template-columns: repeat(2,1fr); }
 }

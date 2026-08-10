@@ -26,7 +26,7 @@ export function WorldMapFeature({ embedded = false }: { embedded?: boolean }) {
   }, []);
 
   const visiblePoints = useMemo(() => points.filter((point) => filters[point.type] && (showFriendActivity || point.source !== "friend")), [filters, points, showFriendActivity]);
-  const labels = useMemo(() => ({ completedDive: c.completedDive, futureDive: c.futureDive, siteReview: c.siteReview, diveSite: c.diveSite }), [c.completedDive, c.diveSite, c.futureDive, c.siteReview]);
+  const labels = useMemo(() => ({ completedDive: c.completedDive, futureDive: c.futureDive, siteReview: c.siteReview, diveSite: c.diveSite, viewSite: c.viewSite }), [c.completedDive, c.diveSite, c.futureDive, c.siteReview, c.viewSite]);
   const dataCredit = locale === "fr" ? "Sites © contributeurs OpenStreetMap et OpenDiveMap · ODbL · Fond de carte © OpenFreeMap" : locale === "es" ? "Sitios © colaboradores de OpenStreetMap y OpenDiveMap · ODbL · Mapa base © OpenFreeMap" : "Dive sites © OpenStreetMap and OpenDiveMap contributors · ODbL · Basemap © OpenFreeMap";
   const countBadge = <div className="map-count"><Globe2 size={18} /><strong>{visiblePoints.length}</strong><span>PIN{visiblePoints.length === 1 ? "" : "S"}</span></div>;
   const choices: [PointType, string][] = [["dive", c.completedDive], ["plan", c.futureDive], ["site", c.showDiveSites]];
