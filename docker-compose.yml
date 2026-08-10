@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: diverpro
+      POSTGRES_USER: diverpro
+      POSTGRES_PASSWORD: diverpro
+    volumes:
+      - diverpro_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U diverpro -d diverpro"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: ./web
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://diverpro:diverpro@db:5432/diverpro?schema=public
+      AUTH_SECRET: ${AUTH_SECRET:-local-development-secret-change-before-production}
+      NEXT_PUBLIC_GOOGLE_AUTH_ENABLED: "false"
+      UPLOAD_DIR: /app/data/uploads
+      GEOCODER_URL: ${GEOCODER_URL:-https://photon.komoot.io}
+    volumes:
+      - diverpro_uploads:/app/data/uploads
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  diverpro_postgres:
+  diverpro_uploads:

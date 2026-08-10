@@ -1,0 +1,8 @@
+node_modules
+.next
+.env
+coverage
+npm-debug.log*
+*.tsbuildinfo
+data/uploads/*
+!data/uploads/.gitkeep

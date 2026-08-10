@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum MediaKind {
+  AVATAR
+  DIVE
+  REVIEW
+}
+
+model User {
+  id                String     @id @default(uuid()) @db.Uuid
+  publicId          String     @unique @map("public_id")
+  firstName         String     @map("first_name")
+  lastName          String     @map("last_name")
+  username          String
+  usernameKey       String     @unique @map("username_key")
+  email             String
+  emailKey          String     @unique @map("email_key")
+  passwordHash      String     @map("password_hash")
+  locale            String     @default("en")
+  birthDate         DateTime?  @map("birth_date") @db.Date
+  bio               String?    @db.VarChar(500)
+  avatarUrl         String?    @map("avatar_url")
+  profileVisibility Visibility @default(PUBLIC) @map("profile_visibility")
+  logbookVisibility Visibility @default(PRIVATE) @map("logbook_visibility")
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+
+  dives               Dive[]
+  plannedDives        PlannedDive[]
+  reviews             SiteReview[]
+  media               Media[]
+  sentFriendships     Friendship[]  @relation("FriendRequester")
+  receivedFriendships Friendship[]  @relation("FriendRecipient")
+
+  @@map("users")
+}
+
+model Friendship {
+  id          String           @id @default(uuid()) @db.Uuid
+  requesterId String           @map("requester_id") @db.Uuid
+  recipientId String           @map("recipient_id") @db.Uuid
+  status      FriendshipStatus @default(PENDING)
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  requester   User             @relation("FriendRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  recipient   User             @relation("FriendRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, recipientId])
+  @@index([recipientId, status])
+  @@index([requesterId, status])
+  @@map("friendships")
+}
+
+model Dive {
+  id              String     @id @default(uuid()) @db.Uuid
+  userId          String     @map("user_id") @db.Uuid
+  date            DateTime   @db.Date
+  siteName        String     @map("site_name") @db.VarChar(160)
+  depthM          Float      @map("depth_m")
+  durationMinutes Int        @map("duration_minutes")
+  groupCount      Int        @default(1) @map("group_count")
+  details         String?    @db.Text
+  latitude        Float?
+  longitude       Float?
+  visibility      Visibility @default(PRIVATE)
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photos          Media[]
+
+  @@index([userId, date])
+  @@index([visibility])
+  @@map("dives")
+}
+
+model PlannedDive {
+  id         String     @id @default(uuid()) @db.Uuid
+  userId     String     @map("user_id") @db.Uuid
+  plannedFor DateTime   @map("planned_for")
+  plannedUntil DateTime @map("planned_until")
+  siteName   String     @map("site_name") @db.VarChar(160)
+  details    String?    @db.Text
+  latitude   Float?
+  longitude  Float?
+  visibility Visibility @default(PRIVATE)
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, plannedFor])
+  @@index([visibility, plannedFor])
+  @@map("planned_dives")
+}
+
+model SiteReview {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  siteName  String   @map("site_name") @db.VarChar(160)
+  latitude  Float
+  longitude Float
+  rating    Int
+  comment   String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photos    Media[]
+
+  @@index([latitude, longitude])
+  @@index([userId, createdAt])
+  @@map("site_reviews")
+}
+
+model Media {
+  id         String      @id @default(uuid()) @db.Uuid
+  ownerId    String      @map("owner_id") @db.Uuid
+  storageKey String      @unique @map("storage_key")
+  mimeType   String      @map("mime_type") @db.VarChar(80)
+  byteSize   Int         @map("byte_size")
+  kind       MediaKind
+  diveId     String?     @map("dive_id") @db.Uuid
+  reviewId   String?     @map("review_id") @db.Uuid
+  createdAt  DateTime    @default(now()) @map("created_at")
+  owner      User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  dive       Dive?       @relation(fields: [diveId], references: [id], onDelete: Cascade)
+  review     SiteReview? @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, kind])
+  @@index([diveId])
+  @@index([reviewId])
+  @@map("media")
+}
