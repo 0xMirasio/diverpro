@@ -30,6 +30,7 @@ export async function GET() {
       orderBy: { plannedFor: "asc" }, take: 500,
     }),
     db.siteReview.findMany({
+      where: { siteId: null },
       include: { user: { select: userSelect } },
       orderBy: { createdAt: "desc" }, take: 500,
     }),
@@ -47,7 +48,7 @@ export async function GET() {
     points: [
       ...dives.map((dive) => ({ id: dive.id, type: "dive", source: source(dive), siteName: dive.siteName, latitude: dive.latitude, longitude: dive.longitude, date: dive.date, visibility: dive.visibility, owner: owner(dive) })),
       ...plans.map((plan) => ({ id: plan.id, type: "plan", source: source(plan), siteName: plan.siteName, latitude: plan.latitude, longitude: plan.longitude, date: plan.plannedFor, endDate: plan.plannedUntil, visibility: plan.visibility, owner: owner(plan) })),
-      ...reviews.map((review) => ({ id: review.id, type: "review", source: source(review), siteName: review.siteName, latitude: review.latitude, longitude: review.longitude, rating: review.rating, date: review.createdAt, owner: owner(review) })),
+      ...reviews.map((review) => ({ id: review.id, type: "site", source: source(review), siteName: review.siteName, latitude: review.latitude, longitude: review.longitude, rating: review.rating, description: review.comment, reviewCount: 1, owner: owner(review) })),
       ...sites.map((site) => ({ id: site.id, type: "site", source: "community", siteName: site.name, latitude: site.latitude, longitude: site.longitude, description: site.description || site.sourceDescription, reviewCount: site._count.reviews, siteSource: site.source, href: `/sites/${site.id}` })),
     ],
   });

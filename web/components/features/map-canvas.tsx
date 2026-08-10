@@ -21,7 +21,7 @@ export type MapPoint = {
 
 type MapLabels = { completedDive: string; futureDive: string; siteReview: string; diveSite?: string };
 
-export function MapCanvas({ points, locale, labels, className = "", fitPoints = false }: { points: MapPoint[]; locale: Locale; labels: MapLabels; className?: string; fitPoints?: boolean }) {
+export function MapCanvas({ points, locale, labels, className = "", fitPoints = false, catalogue2DOnly = false }: { points: MapPoint[]; locale: Locale; labels: MapLabels; className?: string; fitPoints?: boolean; catalogue2DOnly?: boolean }) {
   const container = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,6 +42,7 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
       map.addControl(new maplibre.GlobeControl(), "top-right");
 
       map.on("load", () => {
+        const catalogueMarkers: Array<{ element: HTMLButtonElement; marker: import("maplibre-gl").Marker; coordinates: [number, number] }> = [];
         for (const point of points) {
           const markerElement = document.createElement("button");
           markerElement.type = "button";
@@ -68,10 +69,23 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
             link.textContent = `@${point.owner.username}`;
             popupContent.append(link);
           }
-          new maplibre.Marker({ element: markerElement, anchor: "bottom" })
+          const marker = new maplibre.Marker({ element: markerElement, anchor: "bottom" })
             .setLngLat([point.longitude, point.latitude])
             .setPopup(new maplibre.Popup({ offset: 18, closeButton: false }).setDOMContent(popupContent))
             .addTo(map!);
+          if (catalogue2DOnly && point.type === "site") catalogueMarkers.push({ element: markerElement, marker, coordinates: [point.longitude, point.latitude] });
+        }
+
+        const syncCatalogueMarkers = () => {
+          const visible = map?.getProjection()?.type === "mercator";
+          for (const item of catalogueMarkers) {
+            item.element.hidden = !visible;
+            if (visible) item.marker.setLngLat(item.coordinates);
+          }
+        };
+        if (catalogueMarkers.length) {
+          syncCatalogueMarkers();
+          map?.on("projectiontransition", syncCatalogueMarkers);
         }
 
         if (fitPoints && points.length > 1) {
@@ -86,7 +100,7 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
       disposed = true;
       map?.remove();
     };
-  }, [fitPoints, labels.completedDive, labels.diveSite, labels.futureDive, labels.siteReview, locale, points]);
+  }, [catalogue2DOnly, fitPoints, labels.completedDive, labels.diveSite, labels.futureDive, labels.siteReview, locale, points]);
 
   return <div className={`world-map ${className}`} ref={container} />;
 }

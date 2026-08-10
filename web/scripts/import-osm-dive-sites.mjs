@@ -8,13 +8,45 @@ function normalized(value) {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
+function distanceMeters(aLat, aLon, bLat, bLon) {
+  const radians = (value) => value * Math.PI / 180;
+  const dLat = radians(bLat - aLat); const dLon = radians(bLon - aLon);
+  const value = Math.sin(dLat / 2) ** 2 + Math.cos(radians(aLat)) * Math.cos(radians(bLat)) * Math.sin(dLon / 2) ** 2;
+  return 6371000 * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
+}
+
 function description(tags) {
   return tags.description || tags["description:en"] || tags["description:fr"] || tags["description:es"] || null;
 }
 
+async function reconcileLegacyReviews() {
+  const [reviews, existingSites] = await Promise.all([
+    prisma.siteReview.findMany({ where: { siteId: null }, select: { id: true, userId: true, siteName: true, latitude: true, longitude: true } }),
+    prisma.diveSite.findMany({ select: { id: true, name: true, latitude: true, longitude: true } }),
+  ]);
+  let linked = 0; let created = 0;
+  for (const review of reviews) {
+    let site = existingSites
+      .map((candidate) => ({ ...candidate, distance: distanceMeters(review.latitude, review.longitude, candidate.latitude, candidate.longitude) }))
+      .filter((candidate) => candidate.distance < 500)
+      .sort((left, right) => left.distance - right.distance)[0];
+    if (!site) {
+      site = await prisma.$transaction(async (tx) => {
+        const canonical = await tx.diveSite.create({ data: { name: review.siteName, normalizedName: normalized(review.siteName), latitude: review.latitude, longitude: review.longitude, source: "COMMUNITY", createdById: review.userId } });
+        await tx.siteChangeLog.create({ data: { siteId: canonical.id, actorId: review.userId, action: "SITE_CREATED", after: { name: canonical.name, latitude: canonical.latitude, longitude: canonical.longitude, reconciledReviewId: review.id } } });
+        return canonical;
+      });
+      existingSites.push(site); created += 1;
+    }
+    await prisma.siteReview.update({ where: { id: review.id }, data: { siteId: site.id, siteName: site.name, latitude: site.latitude, longitude: site.longitude } });
+    linked += 1;
+  }
+  return { linked, created };
+}
+
 async function main() {
   const body = new URLSearchParams({ data: query });
-  const response = await fetch(endpoint, { method: "POST", body, signal: AbortSignal.timeout(180000), headers: { "User-Agent": "BlueMates/2.0 OSM dive-site importer" } });
+  const response = await fetch(endpoint, { method: "POST", body, signal: AbortSignal.timeout(180000), headers: { "User-Agent": "BlueMates/2.0.1 OSM dive-site importer" } });
   if (!response.ok) throw new Error(`Overpass returned ${response.status}`);
   const payload = await response.json();
   const sites = (payload.elements || []).map((element) => {
@@ -34,7 +66,8 @@ async function main() {
       update: { name: site.name, normalizedName: site.normalizedName, latitude: site.latitude, longitude: site.longitude, sourceDescription: site.sourceDescription, sourceUrl: site.sourceUrl, metadata: site.metadata },
     })));
   }
-  console.log(JSON.stringify({ imported: sites.length, source: "OpenStreetMap contributors", license: "ODbL 1.0", timestamp: payload.osm3s?.timestamp_osm_base || null }));
+  const reconciledReviews = await reconcileLegacyReviews();
+  console.log(JSON.stringify({ imported: sites.length, reconciledReviews, source: "OpenStreetMap contributors", license: "ODbL 1.0", timestamp: payload.osm3s?.timestamp_osm_base || null }));
 }
 
 main().finally(() => prisma.$disconnect());

@@ -35,6 +35,7 @@ export function ReviewsFeature() {
   useEffect(() => { if (!selectedReview) return; const close = (event: globalThis.KeyboardEvent) => { if (event.key === "Escape") setSelectedReview(null); }; window.addEventListener("keydown", close); return () => window.removeEventListener("keydown", close); }, [selectedReview]);
 
   function useSite(site: Candidate) { setSelectedSiteId(site.id); setSiteName(site.name); setPlaceName(site.name); setLatitude(String(site.latitude)); setLongitude(String(site.longitude)); setCandidates([]); setDuplicatePrompt(false); }
+  function changeSiteName(value: string) { setSiteName(value); setSelectedSiteId(null); setCandidates([]); setDraft(null); setDuplicatePrompt(false); }
   function reset() { setSiteName(""); setPlaceName(""); setLatitude(""); setLongitude(""); setSelectedSiteId(null); setCandidates([]); setDraft(null); setDuplicatePrompt(false); setPhotoIds([]); setUploadVersion((value) => value + 1); setRating(5); }
   async function publish(body: Draft) {
     setPending(true); setError(false);
@@ -55,8 +56,8 @@ export function ReviewsFeature() {
 
   return <div className="feature-page"><FeatureHeader eyebrow="DIVE SITE INTELLIGENCE" title={c.reviewsTitle} subtitle={c.reviewsSub} /><div className="two-column-feature reviews-layout">
     <form className="feature-form" onSubmit={submit}><div className="form-title"><span><Star size={19} /></span><div><h2>{c.siteReview}</h2><p>{c.clickMapInfo}</p></div></div>
-      <label>{c.siteNameLabel}<input value={siteName} onChange={(event) => { setSiteName(event.target.value); setSelectedSiteId(null); setCandidates([]); }} required minLength={2} maxLength={160} /></label>
-      <div><span className="section-label">{c.locationSearch}</span><PlacePicker siteName={placeName} setSiteName={(value) => { setPlaceName(value); setSelectedSiteId(null); }} latitude={latitude} longitude={longitude} setLatitude={(value) => { setLatitude(value); setSelectedSiteId(null); }} setLongitude={(value) => { setLongitude(value); setSelectedSiteId(null); }} /></div>
+      <label>{c.siteNameLabel}<input value={siteName} onChange={(event) => changeSiteName(event.target.value)} required minLength={2} maxLength={160} /></label>
+      <PlacePicker siteName={placeName} setSiteName={(value) => { setPlaceName(value); setSelectedSiteId(null); }} latitude={latitude} longitude={longitude} setLatitude={(value) => { setLatitude(value); setSelectedSiteId(null); }} setLongitude={(value) => { setLongitude(value); setSelectedSiteId(null); }} />
       {selectedSiteId && <p className="selected-catalog-site">✓ {c.useExistingSite}: <strong>{siteName}</strong></p>}
       {candidates.length > 0 && <CandidateList sites={candidates} title={duplicatePrompt ? c.possibleDuplicate : c.nearbySites} onChoose={useSite} />}
       {duplicatePrompt && draft && <button className="secondary-action warning" type="button" disabled={pending} onClick={() => publish({ ...draft, siteId: undefined, confirmNewSite: true })}><AlertTriangle size={15} />{c.createNewAnyway}</button>}

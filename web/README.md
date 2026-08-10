@@ -48,7 +48,7 @@ Prisma migrations under `prisma/migrations` make the database portable to manage
 
 ## Dive-site catalogue
 
-`npm run db:import-sites` downloads named OpenStreetMap objects tagged `sport=scuba_diving` and `scuba_diving:divespot`, then idempotently imports them by OSM object ID. OpenStreetMap attribution is displayed in the site map and detail pages. The data is available under ODbL 1.0; preserve attribution and share database adaptations as required by that licence.
+`npm run db:import-sites` downloads named OpenStreetMap objects tagged `sport=scuba_diving` and `scuba_diving:divespot`, then idempotently imports them by OSM object ID. It also attaches legacy reviews to a canonical site within 500 m, creating a community site when no nearby record exists. OpenStreetMap attribution is displayed in the site map and detail pages. The data is available under ODbL 1.0; preserve attribution and share database adaptations as required by that licence.
 
 The local media adapter writes to `UPLOAD_DIR`. For horizontal production scaling, mount distributed storage or replace `lib/storage.ts` with an S3-compatible adapter while retaining the database-backed media authorization layer.
 
@@ -80,6 +80,8 @@ npm run version:major
 `public/images/logbook-background.png` is an original generated photograph-style asset for the digital logbook.
 
 `public/images/dashboard-ocean-v2.webp` is an original generated underwater panorama used by the dashboard hero.
+
+`public/images/bluemates-turtle-logo.webp` is the generated BlueMates turtle brand mark.
 
 ## Map data
 

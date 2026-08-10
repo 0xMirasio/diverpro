@@ -25,10 +25,10 @@ export function WorldMapFeature({ embedded = false }: { embedded?: boolean }) {
     return () => controller.abort();
   }, []);
 
-  const visiblePoints = useMemo(() => points.filter((point) => filters[point.type] && (showFriendActivity || point.source !== "friend" || point.type === "review")), [filters, points, showFriendActivity]);
+  const visiblePoints = useMemo(() => points.filter((point) => filters[point.type] && (showFriendActivity || point.source !== "friend")), [filters, points, showFriendActivity]);
   const labels = useMemo(() => ({ completedDive: c.completedDive, futureDive: c.futureDive, siteReview: c.siteReview, diveSite: c.diveSite }), [c.completedDive, c.diveSite, c.futureDive, c.siteReview]);
   const countBadge = <div className="map-count"><Globe2 size={18} /><strong>{visiblePoints.length}</strong><span>PIN{visiblePoints.length === 1 ? "" : "S"}</span></div>;
-  const choices: [PointType, string][] = [["dive", c.completedDive], ["plan", c.futureDive], ["review", c.siteReview], ["site", c.showDiveSites]];
+  const choices: [PointType, string][] = [["dive", c.completedDive], ["plan", c.futureDive], ["site", c.showDiveSites]];
 
   function toggle(type: PointType) {
     setFilters((current) => ({ ...current, [type]: !current[type] }));
@@ -44,9 +44,10 @@ export function WorldMapFeature({ embedded = false }: { embedded?: boolean }) {
     </div>
     <div className="map-frame">
       {points.length === 0 && <div className="map-loading"><MapPin size={24} /><span>{c.loadingMap}</span></div>}
-      <MapCanvas points={visiblePoints} locale={locale} labels={labels} />
+      <MapCanvas points={visiblePoints} locale={locale} labels={labels} catalogue2DOnly />
     </div>
     <p className="map-hint"><Star size={14} />{c.mapHint}</p>
+    {filters.site && <p className="map-hint site-2d-hint">{c.site2DHint}</p>}
     <p className="map-hint site-credit">{c.siteDataCredit}</p>
   </div>;
 }
