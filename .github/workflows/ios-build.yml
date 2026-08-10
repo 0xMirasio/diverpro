@@ -1,0 +1,95 @@
+name: Build iOS IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - "ios/**"
+      - "web/app/api/auth/mobile/**"
+      - "web/app/api/profiles/**"
+      - "web/lib/auth.ts"
+      - ".github/workflows/ios-build.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bluemates-ios-release
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: ios
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ios/package-lock.json
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: Generate the native iOS project
+        env:
+          CI: "1"
+        run: npx expo prebuild --platform ios --clean
+
+      - name: Install CocoaPods
+        working-directory: ios/ios
+        run: pod install --repo-update
+
+      - name: Build an unsigned device app
+        env:
+          RCT_NO_LAUNCH_PACKAGER: "1"
+        run: |
+          xcodebuild \
+            -workspace ios/BlueMates.xcworkspace \
+            -scheme BlueMates \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            build
+
+      - name: Package IPA and AltStore source
+        run: |
+          APP_PATH="$(find build/Build/Products/Release-iphoneos -maxdepth 1 -name '*.app' -print -quit)"
+          test -n "$APP_PATH"
+          mkdir -p artifacts package/Payload
+          ditto "$APP_PATH" "package/Payload/BlueMates.app"
+          ditto -c -k --sequesterRsrc --keepParent package/Payload artifacts/BlueMates.ipa
+          plutil -convert json -o artifacts/Info.json "$APP_PATH/Info.plist"
+          node scripts/create-altstore-source.mjs artifacts/BlueMates.ipa artifacts/Info.json artifacts/bluemates-altstore.json
+          plutil -p "$APP_PATH/Info.plist" | grep -E 'CFBundleIdentifier|CFBundleShortVersionString|CFBundleVersion'
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BlueMates-iOS-1.0.0
+          path: |
+            ios/artifacts/BlueMates.ipa
+            ios/artifacts/bluemates-altstore.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish stable AltStore release
+        if: github.ref == 'refs/heads/master'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view ios-latest --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create ios-latest --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "BlueMates iOS 1.0.0" --notes "Unsigned IPA for AltStore sideloading. AltStore signs it locally with the user's Apple ID."
+          fi
+          gh release upload ios-latest artifacts/BlueMates.ipa artifacts/bluemates-altstore.json --repo "$GITHUB_REPOSITORY" --clobber
