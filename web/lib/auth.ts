@@ -5,6 +5,10 @@ import { db } from "@/lib/db";
 const SESSION_COOKIE = "diverpro_session";
 const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7;
 
+function shouldUseSecureCookie() {
+  return process.env.NODE_ENV === "production" && process.env.SESSION_COOKIE_SECURE !== "false";
+}
+
 function secret() {
   const value = process.env.AUTH_SECRET;
   if (!value || value.length < 32) {
@@ -24,7 +28,7 @@ export async function createSession(userId: string) {
   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: shouldUseSecureCookie(),
     path: "/",
     maxAge: SESSION_DURATION_SECONDS,
   });
@@ -35,7 +39,7 @@ export async function clearSession() {
   cookieStore.set(SESSION_COOKIE, "", {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: shouldUseSecureCookie(),
     path: "/",
     maxAge: 0,
   });

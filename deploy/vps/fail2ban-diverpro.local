@@ -1,0 +1,41 @@
+[DEFAULT]
+banaction = ufw
+bantime = 1h
+findtime = 10m
+maxretry = 5
+bantime.increment = true
+bantime.factor = 2
+bantime.maxtime = 1w
+
+[sshd]
+enabled = true
+mode = aggressive
+port = ssh
+backend = systemd
+maxretry = 3
+
+[nginx-http-auth]
+enabled = true
+port = http,https
+logpath = /var/log/nginx/error.log
+
+[nginx-botsearch]
+enabled = true
+port = http,https
+logpath = /var/log/nginx/access.log
+maxretry = 2
+
+[nginx-limit-req]
+enabled = true
+port = http,https
+logpath = /var/log/nginx/error.log
+maxretry = 8
+
+[nginx-diverpro-scanner]
+enabled = true
+port = http,https
+filter = nginx-diverpro-scanner
+logpath = /var/log/nginx/access.log
+maxretry = 2
+findtime = 10m
+bantime = 12h
