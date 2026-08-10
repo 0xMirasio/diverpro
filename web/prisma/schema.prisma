@@ -31,6 +31,7 @@ enum UserRole {
 
 enum DiveSiteSource {
   OSM
+  OPEN_DIVEMAP
   COMMUNITY
 }
 
@@ -163,6 +164,13 @@ model DiveSite {
   source            DiveSiteSource  @default(COMMUNITY)
   externalId        String?         @unique @map("external_id") @db.VarChar(100)
   sourceUrl         String?         @map("source_url") @db.VarChar(500)
+  countryCode       String?         @map("country_code") @db.VarChar(2)
+  countryName       String?         @map("country_name") @db.VarChar(120)
+  seaName           String?         @map("sea_name") @db.VarChar(160)
+  environment       String?         @db.VarChar(40)
+  topologies        Json?
+  maxDepthM         Float?          @map("max_depth_m")
+  entryType         String?         @map("entry_type") @db.VarChar(40)
   metadata          Json?
   createdById       String?         @map("created_by_id") @db.Uuid
   createdAt         DateTime        @default(now()) @map("created_at")

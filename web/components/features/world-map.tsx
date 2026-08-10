@@ -27,6 +27,7 @@ export function WorldMapFeature({ embedded = false }: { embedded?: boolean }) {
 
   const visiblePoints = useMemo(() => points.filter((point) => filters[point.type] && (showFriendActivity || point.source !== "friend")), [filters, points, showFriendActivity]);
   const labels = useMemo(() => ({ completedDive: c.completedDive, futureDive: c.futureDive, siteReview: c.siteReview, diveSite: c.diveSite }), [c.completedDive, c.diveSite, c.futureDive, c.siteReview]);
+  const dataCredit = locale === "fr" ? "Sites © contributeurs OpenStreetMap et OpenDiveMap · ODbL · Fond de carte © OpenFreeMap" : locale === "es" ? "Sitios © colaboradores de OpenStreetMap y OpenDiveMap · ODbL · Mapa base © OpenFreeMap" : "Dive sites © OpenStreetMap and OpenDiveMap contributors · ODbL · Basemap © OpenFreeMap";
   const countBadge = <div className="map-count"><Globe2 size={18} /><strong>{visiblePoints.length}</strong><span>PIN{visiblePoints.length === 1 ? "" : "S"}</span></div>;
   const choices: [PointType, string][] = [["dive", c.completedDive], ["plan", c.futureDive], ["site", c.showDiveSites]];
 
@@ -47,6 +48,6 @@ export function WorldMapFeature({ embedded = false }: { embedded?: boolean }) {
       <MapCanvas points={visiblePoints} locale={locale} labels={labels} catalogueLayer />
     </div>
     <p className="map-hint"><Star size={14} />{c.mapHint}</p>
-    <p className="map-hint site-credit">{c.siteDataCredit}</p>
+    <p className="map-hint site-credit">{dataCredit}</p>
   </div>;
 }

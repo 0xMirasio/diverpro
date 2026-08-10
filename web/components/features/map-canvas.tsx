@@ -17,6 +17,9 @@ export type MapPoint = {
   description?: string | null;
   reviewCount?: number;
   href?: string;
+  locationLabel?: string | null;
+  maxDepthM?: number | null;
+  environment?: string | null;
 };
 
 type MapLabels = { completedDive: string; futureDive: string; siteReview: string; diveSite?: string };
@@ -34,12 +37,25 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
       const maplibre = module.default;
       map = new maplibre.Map({
         container: container.current,
-        style: "https://demotiles.maplibre.org/globe.json",
+        style: "https://tiles.openfreemap.org/styles/liberty",
         center: fitPoints && points.length === 1 ? [points[0].longitude, points[0].latitude] : [3, 22],
         zoom: fitPoints && points.length === 1 ? 7 : 1.25,
       });
       map.addControl(new maplibre.NavigationControl({ visualizePitch: true }), "top-right");
       map.addControl(new maplibre.GlobeControl(), "top-right");
+
+      function siteMarkerElement(point: MapPoint) {
+        const marker = document.createElement("button");
+        marker.type = "button";
+        marker.className = "selected-site-marker";
+        marker.title = point.siteName;
+        marker.setAttribute("aria-label", point.siteName);
+        const pin = document.createElement("span");
+        pin.className = "selected-site-pin";
+        const dot = document.createElement("i");
+        pin.append(dot); marker.append(pin);
+        return marker;
+      }
 
       function popupContent(point: MapPoint) {
         const content = document.createElement("div");
@@ -53,6 +69,9 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
         const end = point.endDate ? new Date(point.endDate).toLocaleDateString(locale) : null;
         meta.textContent = `${end && end !== start ? `${start} – ${end}` : start}${point.rating ? ` · ${"★".repeat(point.rating)}` : ""}${point.reviewCount != null ? `${start ? " · " : ""}${point.reviewCount} review${point.reviewCount === 1 ? "" : "s"}` : ""}`;
         content.append(kind, title, meta);
+        if (point.locationLabel) { const location = document.createElement("b"); location.textContent = point.locationLabel; content.append(location); }
+        const coordinates = document.createElement("code"); coordinates.textContent = `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`; content.append(coordinates);
+        if (point.maxDepthM != null || point.environment) { const facts = document.createElement("small"); facts.textContent = [point.environment, point.maxDepthM != null ? `${point.maxDepthM} m` : null].filter(Boolean).join(" · "); content.append(facts); }
         if (point.description) { const description = document.createElement("p"); description.textContent = point.description.slice(0, 180); content.append(description); }
         if (point.href) { const siteLink = document.createElement("a"); siteLink.href = point.href; siteLink.textContent = point.siteName; content.append(siteLink); }
         if (point.owner?.publicId && point.owner.username) {
@@ -62,18 +81,21 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
       }
 
       map.on("load", () => {
+        map?.setProjection({ type: "globe" });
         const catalogue = catalogueLayer ? points.filter((point) => point.type === "site") : [];
         const regular = catalogueLayer ? points.filter((point) => point.type !== "site") : points;
 
         for (const point of regular) {
-          const markerElement = document.createElement("button");
-          markerElement.type = "button";
-          markerElement.className = `dive-map-marker ${point.type} ${point.source ?? "self"}`;
-          markerElement.title = point.siteName;
-          markerElement.setAttribute("aria-label", point.siteName);
+          const markerElement = point.type === "site" ? siteMarkerElement(point) : document.createElement("button");
+          if (point.type !== "site") {
+            markerElement.type = "button";
+            markerElement.className = `dive-map-marker ${point.type} ${point.source ?? "self"}`;
+            markerElement.title = point.siteName;
+            markerElement.setAttribute("aria-label", point.siteName);
+          }
           new maplibre.Marker({ element: markerElement, anchor: "bottom" })
             .setLngLat([point.longitude, point.latitude])
-            .setPopup(new maplibre.Popup({ offset: 18, closeButton: false }).setDOMContent(popupContent(point)))
+            .setPopup(new maplibre.Popup({ offset: point.type === "site" ? 36 : 18, closeButton: false }).setDOMContent(popupContent(point)))
             .addTo(map!);
         }
 
@@ -99,10 +121,18 @@ export function MapCanvas({ points, locale, labels, className = "", fitPoints = 
               "circle-stroke-width": 1,
             },
           });
+          let selectedSiteMarker: import("maplibre-gl").Marker | undefined;
           map?.on("click", "bluemates-dive-sites", (event) => {
             const id = String(event.features?.[0]?.properties?.id || "");
             const point = catalogueById.get(id);
-            if (point) new maplibre.Popup({ offset: 8, closeButton: false }).setLngLat(event.lngLat).setDOMContent(popupContent(point)).addTo(map!);
+            if (point) {
+              selectedSiteMarker?.remove();
+              selectedSiteMarker = new maplibre.Marker({ element: siteMarkerElement(point), anchor: "bottom" })
+                .setLngLat([point.longitude, point.latitude])
+                .setPopup(new maplibre.Popup({ offset: 36, closeButton: false }).setDOMContent(popupContent(point)))
+                .addTo(map!);
+              selectedSiteMarker.togglePopup();
+            }
           });
           map?.on("mouseenter", "bluemates-dive-sites", () => { if (map) map.getCanvas().style.cursor = "pointer"; });
           map?.on("mouseleave", "bluemates-dive-sites", () => { if (map) map.getCanvas().style.cursor = ""; });
